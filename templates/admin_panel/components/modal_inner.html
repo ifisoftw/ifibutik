@@ -1,0 +1,77 @@
+<div x-data="{ 
+        show: true,
+        closeModal() {
+            this.show = false;
+            setTimeout(() => {
+                const container = document.getElementById('modal-container');
+                if (container) container.innerHTML = '';
+            }, 200);
+        }
+    }"
+     x-show="show"
+     @keydown.escape.window="closeModal()"
+     @close-modal.window="closeModal()"
+     x-transition:enter="transition ease-out duration-300"
+     x-transition:enter-start="opacity-0"
+     x-transition:enter-end="opacity-100"
+     x-transition:leave="transition ease-in duration-200"
+     x-transition:leave-start="opacity-100"
+     x-transition:leave-end="opacity-0"
+     class="fixed inset-0 z-50 overflow-y-auto"
+     style="display: none;">
+    <div class="fixed inset-0 bg-black/50 backdrop-blur-sm" @click="closeModal()"></div>
+    <div class="relative min-h-screen flex items-center justify-center p-4">
+        <div @click.stop
+             x-transition:enter="transition ease-out duration-300"
+             x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+             x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+             x-transition:leave="transition ease-in duration-200"
+             x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
+             x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+             class="relative bg-white rounded-2xl shadow-2xl w-full {{ modal_width }} max-h-[90vh] flex flex-col">
+            <div class="flex items-center justify-between px-6 py-5 border-b border-gray-200 flex-shrink-0">
+                <h2 class="text-xl font-bold text-gray-900">{{ title|default:'Modal' }}</h2>
+                <button type="button" @click="closeModal()" class="text-gray-400 hover:text-gray-600 transition-colors">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+
+            <div class="overflow-y-auto flex-1">
+                <div class="p-6">
+                    {% if body %}
+                        {{ body|safe }}
+                    {% elif body_template %}
+                        {% if body_context %}
+                            {% include body_template with data=body_context %}
+                        {% else %}
+                            {% include body_template %}
+                        {% endif %}
+                    {% else %}
+                        <p class="text-sm text-gray-500">Modal içeriği eklenmedi.</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            {% if show_footer|default:True %}
+            <div class="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-200 bg-gray-50 flex-shrink-0">
+                {% if secondary_action %}
+                    {{ secondary_action|safe }}
+                {% else %}
+                <button type="button"
+                        @click="closeModal()"
+                        class="px-5 py-2.5 border border-gray-300 text-gray-700 font-medium rounded-xl hover:bg-gray-100 transition">
+                    {{ close_text|default:"İptal" }}
+                </button>
+                {% endif %}
+
+                {% if primary_action %}
+                    {{ primary_action|safe }}
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+

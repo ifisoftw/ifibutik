@@ -1,0 +1,33 @@
+{% comment %}
+Reusable card wrapper.
+Usage:
+{% include 'admin_panel/components/card.html' with title='Bugün Ciro' subtitle='Son 24 saat' body=metric_html %}
+Parameters:
+- title / subtitle: optional texts
+- icon: optional HTML (safe) shown before title
+- actions: optional HTML for header actions (safe)
+- body: raw HTML content (use |safe when passing strings)
+- content_template: optional template path rendered inside the card
+- content_context: optional context dict passed to content_template
+- footer: optional HTML rendered with top border
+- variant: default | glass | muted
+- padding: override padding classes (default p-6)
+{% endcomment %}
+{% with padding=padding|default:'p-6' %}
+    {% with variant=variant|default:'default' %}
+        {% if variant == 'glass' %}
+            {% with card_class="glass-card border border-white/20 shadow-lg" %}
+                {% include 'admin_panel/components/card_inner.html' %}
+            {% endwith %}
+        {% elif variant == 'muted' %}
+            {% with card_class="bg-gray-50 border border-gray-100 rounded-2xl shadow-sm" %}
+                {% include 'admin_panel/components/card_inner.html' %}
+            {% endwith %}
+        {% else %}
+            {% with card_class="bg-white border border-gray-200 rounded-2xl shadow-sm" %}
+                {% include 'admin_panel/components/card_inner.html' %}
+            {% endwith %}
+        {% endif %}
+    {% endwith %}
+{% endwith %}
+

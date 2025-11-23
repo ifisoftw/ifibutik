@@ -1,0 +1,14 @@
+{% if status == 'new' %}
+    <span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-800">{{ label }}</span>
+{% elif status == 'processing' %}
+    <span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800">{{ label }}</span>
+{% elif status == 'shipped' %}
+    <span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-purple-100 text-purple-800">{{ label }}</span>
+{% elif status == 'delivered' %}
+    <span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700">{{ label }}</span>
+{% elif status == 'cancelled' %}
+    <span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-rose-100 text-rose-700">{{ label }}</span>
+{% else %}
+    <span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-600">{{ label }}</span>
+{% endif %}
+

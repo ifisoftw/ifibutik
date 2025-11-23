@@ -1,0 +1,47 @@
+<div class="{{ card_class }} {{ padding }}">
+    {% if title or subtitle or actions %}
+    <div class="flex items-start gap-3">
+        <div class="flex-1 min-w-0">
+            {% if title %}
+            <div class="flex items-center gap-2">
+                {% if icon %}
+                <span class="w-9 h-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center" aria-hidden="true">
+                    {{ icon|safe }}
+                </span>
+                {% endif %}
+                <h3 class="text-base font-semibold text-gray-900">{{ title }}</h3>
+            </div>
+            {% endif %}
+            {% if subtitle %}
+            <p class="text-sm text-gray-500 mt-1">{{ subtitle }}</p>
+            {% endif %}
+        </div>
+        {% if actions %}
+        <div class="flex-shrink-0 flex items-center gap-2" aria-label="Card actions">
+            {{ actions|safe }}
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    {% if body or content_template %}
+    <div class="{% if title or subtitle %}mt-5{% endif %}">
+        {% if body %}
+            {{ body|safe }}
+        {% elif content_template %}
+            {% if content_context %}
+                {% include content_template with data=content_context %}
+            {% else %}
+                {% include content_template %}
+            {% endif %}
+        {% endif %}
+    </div>
+    {% endif %}
+
+    {% if footer %}
+    <div class="mt-5 pt-4 border-t border-gray-100 text-sm text-gray-600">
+        {{ footer|safe }}
+    </div>
+    {% endif %}
+</div>
+

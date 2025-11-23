@@ -1,0 +1,23 @@
+{% comment %}
+Reusable modal component for HTMX-rendered content.
+Parameters:
+- title: modal title text
+- size: sm | md | lg | xl (default lg)
+- body_template / body_context: template rendered inside body
+- body: raw HTML fallback
+- show_footer: bool (default true)
+- primary_action / secondary_action: HTML for footer buttons
+- close_text: label for cancel button
+{% endcomment %}
+{% with size=size|default:'lg' %}
+{% if size == 'sm' %}
+    {% with modal_width="max-w-md" %}{% include 'admin_panel/components/modal_inner.html' %}{% endwith %}
+{% elif size == 'xl' %}
+    {% with modal_width="max-w-6xl" %}{% include 'admin_panel/components/modal_inner.html' %}{% endwith %}
+{% elif size == 'md' %}
+    {% with modal_width="max-w-3xl" %}{% include 'admin_panel/components/modal_inner.html' %}{% endwith %}
+{% else %}
+    {% with modal_width="max-w-4xl" %}{% include 'admin_panel/components/modal_inner.html' %}{% endwith %}
+{% endif %}
+{% endwith %}
+

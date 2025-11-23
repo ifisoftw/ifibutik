@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="min-h-[70vh] flex items-center justify-center px-4 relative">
+    <!-- Confetti Animation -->
+    <div class="absolute inset-0 overflow-hidden pointer-events-none">
+        <div class="absolute top-0 left-1/4 w-2 h-2 bg-brand-pink rounded-full animate-float"></div>
+        <div class="absolute top-0 right-1/4 w-2 h-2 bg-brand-purple rounded-full animate-float" style="animation-delay: 0.5s;"></div>
+        <div class="absolute top-0 left-1/3 w-2 h-2 bg-brand-coral rounded-full animate-float" style="animation-delay: 1s;"></div>
+        <div class="absolute top-0 right-1/3 w-2 h-2 bg-green-500 rounded-full animate-float" style="animation-delay: 1.5s;"></div>
+    </div>
+    
+    <div class="text-center max-w-lg mx-auto glass-white p-10 rounded-3xl shadow-2xl border border-white/20 animate-slide-up">
+        <div class="w-24 h-24 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg animate-pulse-glow">
+            <svg class="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+        </div>
+        
+        <h1 class="text-3xl font-black gradient-text mb-4">Siparişiniz Alındı!</h1>
+        <p class="text-gray-600 mb-3">Siparişiniz başarıyla oluşturulmuştur.</p>
+        <p class="text-sm text-gray-500 mb-8">Sipariş numaranız: <span class="font-bold text-brand-pink">#{{ order.id }}</span></p>
+        
+        <div class="bg-gradient-to-r from-brand-pink/10 to-brand-purple/10 rounded-2xl p-4 mb-8">
+            <p class="text-sm text-gray-700 font-medium">
+                <svg class="w-5 h-5 text-brand-pink inline mr-1" fill="currentColor" viewBox="0 0 20 20"><path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"/><path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z"/></svg>
+                Sipariş detayları e-posta adresinize gönderilecektir.
+            </p>
+        </div>
+        
+        <a href="{% url 'home' %}" class="inline-block bg-gradient-to-r from-brand-pink to-brand-purple text-white px-10 py-4 rounded-2xl font-bold shadow-lg hover:shadow-2xl transform hover:scale-105 transition-all">
+            Alışverişe Devam Et
+        </a>
+    </div>
+</div>
+{% endblock %}
+

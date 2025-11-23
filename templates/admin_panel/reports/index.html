@@ -1,0 +1,68 @@
+{% extends 'admin_panel/base.html' %}
+
+{% block title %}Raporlar{% endblock %}
+{% block page_title %}
+<div class="flex items-center gap-3">
+    <div class="w-10 h-10 bg-gradient-to-br from-teal-400 to-cyan-500 rounded-xl flex items-center justify-center shadow-lg">
+        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+        </svg>
+    </div>
+    <div>
+        <h1 class="text-2xl font-black text-gray-900">Raporlar</h1>
+        <p class="text-sm text-gray-500 font-medium">Detaylı analiz ve raporlar</p>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+
+<div class="mb-6">
+    <form method="GET" class="flex items-center gap-4">
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Başlangıç</label>
+            <input type="date" 
+                   name="start_date" 
+                   value="{{ start_date|date:'Y-m-d' }}"
+                   class="px-4 py-2 border rounded-lg">
+        </div>
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Bitiş</label>
+            <input type="date" 
+                   name="end_date" 
+                   value="{{ end_date|date:'Y-m-d' }}"
+                   class="px-4 py-2 border rounded-lg">
+        </div>
+        <button type="submit" class="mt-6 px-6 py-2 bg-primary text-white rounded-lg">Filtrele</button>
+        <a href="{% url 'admin_reports_export' %}" class="mt-6 px-6 py-2 bg-green-600 text-white rounded-lg">Excel İndir</a>
+    </form>
+</div>
+
+<div class="grid grid-cols-2 gap-6">
+    <div class="bg-white rounded-xl shadow border p-6">
+        <h2 class="text-lg font-bold mb-4">Kampanya Bazlı Rapor</h2>
+        <div class="space-y-2">
+            {% for item in campaign_report %}
+            <div class="flex justify-between p-3 bg-gray-50 rounded">
+                <span class="text-sm font-medium">{{ item.campaign__title }}</span>
+                <span class="text-sm font-bold">{{ item.order_count }} sipariş - ₺{{ item.total_revenue|floatformat:0 }}</span>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    
+    <div class="bg-white rounded-xl shadow border p-6">
+        <h2 class="text-lg font-bold mb-4">Şehir Bazlı Rapor</h2>
+        <div class="space-y-2">
+            {% for item in city_report %}
+            <div class="flex justify-between p-3 bg-gray-50 rounded">
+                <span class="text-sm font-medium">{{ item.city_fk__name }}</span>
+                <span class="text-sm font-bold">{{ item.order_count }} sipariş</span>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+

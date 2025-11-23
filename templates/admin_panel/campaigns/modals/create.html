@@ -1,0 +1,204 @@
+{% comment %}
+Campaign Create Modal - HTMX Form
+{% endcomment %}
+<div x-data="{ 
+    show: true,
+    closeModal() {
+        this.show = false;
+        setTimeout(() => {
+            document.getElementById('modal-container').innerHTML = '';
+        }, 300);
+    }
+}" x-show="show" @keydown.escape.window="closeModal()" x-transition:enter="transition ease-out duration-300"
+    x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+    x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100"
+    x-transition:leave-end="opacity-0" class="fixed inset-0 z-50 overflow-y-auto" style="display: none;">
+
+    <!-- Backdrop -->
+    <div class="fixed inset-0 bg-black/50 backdrop-blur-sm" @click="closeModal()"></div>
+
+    <!-- Modal -->
+    <div class="relative min-h-screen flex items-center justify-center p-4">
+        <div @click.stop x-transition:enter="transition ease-out duration-300"
+            x-transition:enter-start="opacity-0 translate-y-4 scale-95"
+            x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+            class="relative bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col">
+
+            <!-- Header -->
+            <div class="flex items-center justify-between px-6 py-5 border-b border-gray-200 flex-shrink-0">
+                <h2 class="text-xl font-bold text-gray-900">Yeni Kampanya Oluştur</h2>
+                <button @click="closeModal()" class="text-gray-400 hover:text-gray-600 transition-colors">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12">
+                        </path>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Body -->
+            <div class="overflow-y-auto flex-1 p-6">
+                <form id="campaign-create-form" hx-post="{% url 'admin_campaign_create' %}"
+                    hx-encoding="multipart/form-data" hx-swap="none">
+                    {% csrf_token %}
+
+                    <div class="space-y-6">
+                        <!-- Banner Upload -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Banner Görseli</label>
+                            <input type="file" name="banner_image" accept="image/*"
+                                class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-white hover:file:bg-primary/90">
+                            <p class="mt-1 text-xs text-gray-500">PNG, JPG, WebP. Maksimum 10MB</p>
+                        </div>
+
+                        <!-- Title -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Kampanya Adı</label>
+                            <input type="text" name="title" required placeholder="Örn: Yaz İndirimi 2024"
+                                class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all">
+                            <p class="mt-1 text-xs text-gray-500">Slug otomatik oluşturulacak</p>
+                        </div>
+
+                        <!-- Description -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Açıklama</label>
+                            <textarea name="description" rows="3" placeholder="Kampanya açıklaması..."
+                                class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all"></textarea>
+                        </div>
+
+                        <!-- Price & Min Quantity -->
+                        <div class="grid grid-cols-3 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Kampanya Fiyatı</label>
+                                <div class="relative">
+                                    <input type="number" name="price" required step="0.01" placeholder="299"
+                                        class="w-full pl-8 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <span class="text-gray-500 text-sm">₺</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Minimum Adet</label>
+                                <input type="number" name="min_quantity" required value="3"
+                                    class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Sıra</label>
+                                <input type="number" name="order" value="1"
+                                    class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all">
+                            </div>
+                        </div>
+
+                        <!-- Shipping & COD -->
+                        <div class="grid grid-cols-2 gap-6">
+                            <!-- Shipping -->
+                            <div class="space-y-3">
+                                <h4 class="text-sm font-semibold text-gray-700 border-b pb-1">Kargo Ücretleri</h4>
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-600 mb-1">Normal Kargo
+                                        Ücreti</label>
+                                    <div class="relative">
+                                        <input type="number" name="shipping_price" value="100" step="0.01"
+                                            class="w-full pl-8 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all">
+                                        <div
+                                            class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                            <span class="text-gray-500 text-sm">₺</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-600 mb-1">İndirimli Kargo
+                                        Ücreti</label>
+                                    <div class="relative">
+                                        <input type="number" name="shipping_price_discounted" value="0" step="0.01"
+                                            class="w-full pl-8 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all">
+                                        <div
+                                            class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                            <span class="text-gray-500 text-sm">₺</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- COD -->
+                            <div class="space-y-3">
+                                <h4 class="text-sm font-semibold text-gray-700 border-b pb-1">Kapıda Ödeme</h4>
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-600 mb-1">Normal Kapıda
+                                        Ödeme</label>
+                                    <div class="relative">
+                                        <input type="number" name="cod_price" value="100" step="0.01"
+                                            class="w-full pl-8 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all">
+                                        <div
+                                            class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                            <span class="text-gray-500 text-sm">₺</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-600 mb-1">İndirimli Kapıda
+                                        Ödeme</label>
+                                    <div class="relative">
+                                        <input type="number" name="cod_price_discounted" value="85" step="0.01"
+                                            class="w-full pl-8 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all">
+                                        <div
+                                            class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                            <span class="text-gray-500 text-sm">₺</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Sizes -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Bedenler</label>
+                            <div class="flex flex-wrap gap-2">
+                                {% for size in sizes %}
+                                <label
+                                    class="inline-flex items-center gap-2 px-4 py-2 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-primary transition-colors">
+                                    <input type="checkbox" name="sizes" value="{{ size.id }}"
+                                        class="rounded text-primary focus:ring-primary">
+                                    <span class="text-sm font-medium text-gray-700">{{ size.name }}</span>
+                                </label>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <!-- Active Status -->
+                        <div class="flex items-center gap-3 p-4 bg-gray-50 rounded-xl">
+                            <input type="checkbox" name="is_active" id="is_active" checked
+                                class="w-5 h-5 rounded text-primary focus:ring-primary">
+                            <label for="is_active" class="text-sm font-medium text-gray-700 cursor-pointer">Kampanya
+                                aktif olsun</label>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Footer -->
+            <div
+                class="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-200 bg-gray-50 flex-shrink-0">
+                <button @click="closeModal()" type="button"
+                    class="px-6 py-2.5 border border-gray-300 text-gray-700 font-semibold rounded-xl hover:bg-gray-50 transition-colors">
+                    İptal
+                </button>
+                <button type="submit" form="campaign-create-form"
+                    class="px-6 py-2.5 bg-primary text-white font-semibold rounded-xl hover:bg-primary/90 transition-colors shadow">
+                    Oluştur
+                </button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+    // Auto-close on successful submission
+    document.body.addEventListener('campaignListChanged', () => {
+        const modal = document.getElementById('modal-container');
+        if (modal) {
+            modal.innerHTML = '';
+        }
+    });
+</script>

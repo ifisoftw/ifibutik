@@ -1,0 +1,371 @@
+{% extends 'admin_panel/components/modal_wrapper.html' %}
+
+{% block modal_width %}max-w-6xl{% endblock %}
+{% block modal_title %}Kampanya Düzenle{% endblock %}
+
+{% block modal_body %}
+<div x-data="{ tab: 'details' }" class="flex flex-col h-full">
+
+    <!-- Tab Navigation -->
+    <div class="border-b border-gray-200 px-6">
+        <nav class="flex space-x-6">
+            <button @click="tab = 'details'"
+                :class="tab === 'details' ? 'border-primary text-primary' : 'border-transparent text-gray-500 hover:text-gray-700'"
+                class="py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap transition-colors">
+                <div class="flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                        </path>
+                    </svg>
+                    <span>Kampanya Detayları</span>
+                </div>
+            </button>
+
+            <button @click="tab = 'products'"
+                :class="tab === 'products' ? 'border-primary text-primary' : 'border-transparent text-gray-500 hover:text-gray-700'"
+                class="py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap transition-colors">
+                <div class="flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+                    </svg>
+                    <span>Mevcut Ürünler</span>
+                    <span class="px-2 py-0.5 bg-gray-100 text-gray-700 rounded-full text-xs font-semibold">{{
+                        campaign_products.count }}</span>
+                </div>
+            </button>
+
+            <button @click="tab = 'add_product'"
+                :class="tab === 'add_product' ? 'border-primary text-primary' : 'border-transparent text-gray-500 hover:text-gray-700'"
+                class="py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap transition-colors">
+                <div class="flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                    </svg>
+                    <span>Ürün Ekle</span>
+                </div>
+            </button>
+        </nav>
+    </div>
+
+    <!-- Tab Content -->
+    <div class="flex-1 overflow-y-auto">
+
+        <!-- Kampanya Detayları Tab -->
+        <div x-show="tab === 'details'" class="p-6">
+            <form id="campaign-form" hx-post="{% url 'admin_campaign_update' campaign.id %}"
+                hx-encoding="multipart/form-data" hx-target="#modal-container">
+                {% csrf_token %}
+
+                <!-- Temel Bilgiler Section -->
+                <div class="mb-8">
+                    <div class="flex items-center gap-2 mb-4">
+                        <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                            <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </div>
+                        <h3 class="text-lg font-bold text-gray-900">Temel Bilgiler</h3>
+                    </div>
+
+                    <!-- Banner Upload -->
+                    <div class="mb-4">
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Banner Görseli</label>
+                        {% if campaign.banner_image %}
+                        <div class="mb-3">
+                            <img src="{{ campaign.banner_image.url }}" class="w-full h-48 object-cover rounded-lg">
+                        </div>
+                        {% endif %}
+                        <input type="file" name="banner_image" accept="image/*"
+                            class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-white hover:file:bg-blue-600">
+                        <p class="mt-1 text-xs text-gray-500">PNG, JPG, GIF, WebP, MP4, WebM. Maksimum 10MB</p>
+                    </div>
+
+                    <!-- Kampanya Adı & Slug -->
+                    <div class="grid grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Kampanya Adı *</label>
+                            <input type="text" name="title" value="{{ campaign.title }}" required
+                                class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Slug (opsiyonel)</label>
+                            <input type="text" name="slug" value="{{ campaign.slug }}"
+                                class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all">
+                            <p class="mt-1 text-xs text-gray-500">Sadece küçük harf, rakam ve tire (-) kullanabilir</p>
+                        </div>
+                    </div>
+
+                    <!-- Açıklama -->
+                    <div class="mb-4">
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Açıklama</label>
+                        <textarea name="description" rows="3"
+                            class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all">{{ campaign.description }}</textarea>
+                    </div>
+                </div>
+
+                <!-- Fiyat ve Koşullar Section -->
+                <div class="mb-8">
+                    <div class="flex items-center gap-2 mb-4">
+                        <div class="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
+                            <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z">
+                                </path>
+                            </svg>
+                        </div>
+                        <h3 class="text-lg font-bold text-gray-900">Fiyat ve Koşullar</h3>
+                    </div>
+
+                    <div class="grid grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Kampanya Fiyatı *</label>
+                            <div class="relative">
+                                <input type="number" name="price" value="{{ campaign.price|stringformat:'s'|cut:',' }}"
+                                    required step="0.01"
+                                    class="w-full pl-8 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <span class="text-gray-500 text-sm">₺</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Minimum Adet *</label>
+                            <input type="number" name="min_quantity" value="{{ campaign.min_quantity }}" required
+                                min="1"
+                                class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Sıra (Order)</label>
+                            <input type="number" name="order" value="{{ campaign.order|default:1 }}"
+                                class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Kargo ve Teslimat Section -->
+                <div class="mb-8">
+                    <div class="flex items-center gap-2 mb-4">
+                        <div class="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
+                            <svg class="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0">
+                                </path>
+                            </svg>
+                        </div>
+                        <h3 class="text-lg font-bold text-gray-900">Kargo ve Teslimat</h3>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-6 mb-4">
+                        <!-- Kargo Ücretleri -->
+                        <div>
+                            <h4 class="text-sm font-semibold text-gray-700 mb-3">KARGO ÜCRETLERİ</h4>
+                            <div class="space-y-3">
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-600 mb-1">Normal Kargo
+                                        Ücreti</label>
+                                    <div class="relative">
+                                        <input type="number" name="shipping_price"
+                                            value="{{ campaign.shipping_price|stringformat:'s'|cut:',' }}" step="0.01"
+                                            class="w-full pl-8 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all">
+                                        <div
+                                            class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                            <span class="text-gray-500 text-sm">₺</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-600 mb-1">İndirimli Kargo
+                                        Ücreti</label>
+                                    <div class="relative">
+                                        <input type="number" name="shipping_price_discounted"
+                                            value="{{ campaign.shipping_price_discounted|stringformat:'s'|cut:',' }}"
+                                            step="0.01"
+                                            class="w-full pl-8 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all">
+                                        <div
+                                            class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                            <span class="text-gray-500 text-sm">₺</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Kapıda Ödeme -->
+                        <div>
+                            <h4 class="text-sm font-semibold text-gray-700 mb-3">KAPIDA ÖDEME</h4>
+                            <div class="space-y-3">
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-600 mb-1">Normal Kapıda
+                                        Ödeme</label>
+                                    <div class="relative">
+                                        <input type="number" name="cod_price"
+                                            value="{{ campaign.cod_price|stringformat:'s'|cut:',' }}" step="0.01"
+                                            class="w-full pl-8 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all">
+                                        <div
+                                            class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                            <span class="text-gray-500 text-sm">₺</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-600 mb-1">İndirimli Kapıda
+                                        Ödeme</label>
+                                    <div class="relative">
+                                        <input type="number" name="cod_price_discounted"
+                                            value="{{ campaign.cod_price_discounted|stringformat:'s'|cut:',' }}"
+                                            step="0.01"
+                                            class="w-full pl-8 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all">
+                                        <div
+                                            class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                            <span class="text-gray-500 text-sm">₺</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bedenler Section -->
+                <div class="mb-8">
+                    <div class="flex items-center gap-2 mb-4">
+                        <div class="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center">
+                            <svg class="w-4 h-4 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01">
+                                </path>
+                            </svg>
+                        </div>
+                        <h3 class="text-lg font-bold text-gray-900">Bedenler</h3>
+                    </div>
+
+                    <div class="flex flex-wrap gap-2 mb-3">
+                        {% for size in sizes %}
+                        <label
+                            class="inline-flex items-center gap-2 px-4 py-2 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-primary transition-colors">
+                            <input type="checkbox" name="sizes" value="{{ size.id }}" {% if size in campaign.available_sizes.all %}checked{% endif %}
+                                class="rounded text-primary focus:ring-primary">
+                            <span class="text-sm font-medium text-gray-700">{{ size.name }}</span>
+                        </label>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Size Guide Table -->
+                    <div class="mt-4 p-4 bg-gray-50 rounded-lg">
+                        <table class="w-full text-xs">
+                            <thead>
+                                <tr class="border-b border-gray-200">
+                                    <th class="text-left py-2 text-gray-600">Beden</th>
+                                    <th class="text-right py-2 text-gray-600">Bel Ölçüsü</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-200">
+                                {% for size in sizes %}
+                                <tr>
+                                    <td class="py-2 text-gray-900 font-medium">{{ size.name }}</td>
+                                    <td class="py-2 text-right text-gray-600">{{ size.slug }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </form>
+        </div>
+
+        <!-- Mevcut Ürünler Tab -->
+        <div x-show="tab === 'products'" class="p-6" x-cloak>
+            <div class="space-y-3">
+                {% for cp in campaign_products %}
+                <div class="flex items-center gap-4 p-4 border border-gray-200 rounded-lg">
+                    {% if cp.product.images.first %}
+                    <img src="{{ cp.product.images.first.image.url }}" class="w-16 h-16 object-cover rounded-lg">
+                    {% else %}
+                    <div class="w-16 h-16 bg-gray-100 rounded-lg"></div>
+                    {% endif %}
+                    <div class="flex-1 min-w-0">
+                        <p class="font-semibold text-gray-900 text-sm">{{ cp.product.name }}</p>
+                        <p class="text-xs text-gray-500">SKU: {{ cp.product.sku }}</p>
+                        <div class="flex items-center gap-2 mt-1">
+                            <span class="text-xs text-gray-500">Sıra:</span>
+                            <input type="number" value="{{ cp.sort_order }}" min="0"
+                                class="w-16 px-2 py-1 text-xs border border-gray-300 rounded">
+                        </div>
+                    </div>
+                    <button class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+                {% empty %}
+                <div class="text-center py-12 text-gray-400">
+                    <svg class="w-12 h-12 mx-auto mb-3 text-gray-300" fill="none" stroke="currentColor"
+                        viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4">
+                        </path>
+                    </svg>
+                    <p>Bu kampanyada henüz ürün yok</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Ürün Ekle Tab -->
+        <div x-show="tab === 'add_product'" class="p-6" x-cloak>
+            <div class="mb-4">
+                <input type="text" placeholder="Ürün ara..."
+                    class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all">
+            </div>
+
+            <!-- Filtreler -->
+            <div class="flex items-center gap-2 mb-4">
+                <button class="px-3 py-1.5 text-xs font-medium bg-primary text-white rounded-full">Tüm Ürünler</button>
+                <button
+                    class="px-3 py-1.5 text-xs font-medium bg-white text-gray-600 border border-gray-300 rounded-full hover:bg-gray-50">Kampanyası
+                    Olmayan</button>
+                <button
+                    class="px-3 py-1.5 text-xs font-medium bg-white text-gray-600 border border-gray-300 rounded-full hover:bg-gray-50">Çoklu
+                    Kampanyalı</button>
+            </div>
+
+            <!-- Ürün Listesi -->
+            <div class="space-y-2">
+                {% for product in all_products|slice:":10" %}
+                <div
+                    class="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:border-primary transition-colors">
+                    <div class="flex items-center gap-3">
+                        {% if product.images.first %}
+                        <img src="{{ product.images.first.image.url }}" class="w-12 h-12 object-cover rounded-lg">
+                        {% else %}
+                        <div class="w-12 h-12 bg-gray-100 rounded-lg"></div>
+                        {% endif %}
+                        <div>
+                            <p class="font-semibold text-gray-900 text-sm">{{ product.name }}</p>
+                            <p class="text-xs text-gray-500">SKU: {{ product.sku }}</p>
+                        </div>
+                    </div>
+                    <button class="p-2 bg-primary text-white rounded-lg hover:bg-blue-600 transition-colors">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4">
+                            </path>
+                        </svg>
+                    </button>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}
+
+{% block form_id %}campaign-form{% endblock %}
+{% block submit_text %}Güncelle{% endblock %}

@@ -1,0 +1,56 @@
+{% comment %}
+Global confirmation dialog using Alpine.js store.
+Triggered via: Alpine.store('confirm').ask('Mesaj', callbackFn)
+{% endcomment %}
+<div x-data
+     x-show="$store.confirm.show" 
+     @keydown.escape.window="$store.confirm.cancel()"
+     x-transition:enter="transition ease-out duration-200"
+     x-transition:enter-start="opacity-0"
+     x-transition:enter-end="opacity-100"
+     x-transition:leave="transition ease-in duration-150"
+     x-transition:leave-start="opacity-100"
+     x-transition:leave-end="opacity-0"
+     class="fixed inset-0 z-[60] overflow-y-auto"
+     x-cloak>
+    
+    <!-- Backdrop -->
+    <div class="fixed inset-0 bg-black/60 backdrop-blur-sm" @click="$store.confirm.cancel()"></div>
+    
+    <!-- Dialog -->
+    <div class="relative min-h-screen flex items-center justify-center p-4">
+        <div @click.stop
+             x-transition:enter="transition ease-out duration-200"
+             x-transition:enter-start="opacity-0 scale-95"
+             x-transition:enter-end="opacity-100 scale-100"
+             x-transition:leave="transition ease-in duration-150"
+             x-transition:leave-start="opacity-100 scale-100"
+             x-transition:leave-end="opacity-0 scale-95"
+             class="relative bg-white rounded-2xl shadow-2xl w-full max-w-md">
+            
+            <div class="p-6">
+                <!-- Icon -->
+                <div class="w-14 h-14 rounded-full bg-rose-100 mx-auto flex items-center justify-center mb-4">
+                    <svg class="w-7 h-7 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                    </svg>
+                </div>
+                
+                <!-- Message -->
+                <h3 class="text-lg font-bold text-gray-900 text-center mb-2">Emin misiniz?</h3>
+                <p class="text-sm text-gray-600 text-center mb-6" x-text="$store.confirm.message"></p>
+                
+                <!-- Actions -->
+                <div class="flex items-center gap-3">
+                    {% include 'admin_panel/components/button.html' with label='İptal' variant='secondary' full_width=True %}
+                    <button @click="$store.confirm.yes()" 
+                            type="button"
+                            class="flex-1 px-4 py-2.5 bg-rose-600 text-white font-semibold rounded-xl hover:bg-rose-700 transition-colors shadow">
+                        Onayla
+                    </button>
+                </div>
+            </div>
+            
+        </div>
+    </div>
+</div>

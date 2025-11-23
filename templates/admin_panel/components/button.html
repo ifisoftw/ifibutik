@@ -1,0 +1,32 @@
+{% comment %}
+Simple button component
+Usage: {% include 'admin_panel/components/button.html' with label='Kaydet' variant='primary' %}
+Variants: primary, secondary, ghost, danger, outline
+{% endcomment %}
+{% if href %}
+<a href="{{ href }}" 
+   {% if target %}target="{{ target }}"{% endif %}
+   class="inline-flex items-center gap-2 font-semibold rounded-xl transition-all focus:outline-none focus:ring-2
+          {% if variant == 'secondary' %}bg-white text-gray-700 border border-gray-200 hover:bg-gray-50 px-4 py-2.5 text-sm shadow-sm
+          {% elif variant == 'ghost' %}text-gray-600 hover:bg-gray-100 px-4 py-2.5 text-sm
+          {% elif variant == 'danger' %}bg-rose-500 text-white hover:bg-rose-600 px-4 py-2.5 text-sm shadow
+          {% elif variant == 'outline' %}border border-gray-300 text-gray-700 bg-white hover:bg-gray-50 px-4 py-2.5 text-sm
+          {% else %}bg-primary text-white hover:bg-primary/90 px-4 py-2.5 text-sm shadow{% endif %}
+          {% if full_width %}w-full justify-center{% endif %}">
+    {{ label }}
+</a>
+{% else %}
+<button type="{{ type|default:'button' }}"
+        {% if disabled %}disabled{% endif %}
+        class="inline-flex items-center gap-2 font-semibold rounded-xl transition-all focus:outline-none focus:ring-2
+               {% if variant == 'secondary' %}bg-white text-gray-700 border border-gray-200 hover:bg-gray-50 px-4 py-2.5 text-sm shadow-sm
+               {% elif variant == 'ghost' %}text-gray-600 hover:bg-gray-100 px-4 py-2.5 text-sm
+               {% elif variant == 'danger' %}bg-rose-500 text-white hover:bg-rose-600 px-4 py-2.5 text-sm shadow
+               {% elif variant == 'outline' %}border border-gray-300 text-gray-700 bg-white hover:bg-gray-50 px-4 py-2.5 text-sm
+               {% else %}bg-primary text-white hover:bg-primary/90 px-4 py-2.5 text-sm shadow{% endif %}
+               {% if disabled %}opacity-60 pointer-events-none{% endif %}
+               {% if full_width %}w-full justify-center{% endif %}">
+    {{ label }}
+</button>
+{% endif %}
+
