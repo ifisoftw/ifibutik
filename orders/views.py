@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from .models import Order, OrderItem
 from campaigns.models import Campaign, SizeOption
 from products.models import Product
@@ -8,6 +8,8 @@ from django.views.decorators.http import require_POST
 import json
 import random
 import string
+from django.utils import timezone
+from django.utils.timesince import timesince
 
 @require_POST
 def create_order(request):
@@ -132,3 +134,95 @@ def order_success(request):
     }
     
     return render(request, 'orders/success.html', context)
+    
+def social_proof_api(request):
+    """
+    Returns a random real order for the social proof widget.
+    """
+    # Get last 20 orders
+    recent_orders = Order.objects.filter(
+        status__in=['new', 'processing', 'shipped', 'delivered']
+    ).select_related('city_fk').prefetch_related('items__product__images').order_by('-created_at')[:20]
+    
+    if not recent_orders.exists():
+        # Fallback if no orders exist yet
+        return JsonResponse({}, status=404)
+    
+    # Pick a random order
+    order = random.choice(recent_orders)
+    
+    # Mask Name (Ayşe Yıl***)
+    full_name = order.customer_name.strip()
+    parts = full_name.split()
+    masked_name = ""
+    
+    if len(parts) >= 2:
+        first_name = parts[0]
+        last_name = parts[-1]
+        
+        if len(last_name) > 2:
+            masked_last = last_name[:2] + "***"
+        else:
+            masked_last = last_name[0] + "***"
+            
+        masked_name = f"{first_name} {masked_last}"
+    else:
+        # Single name
+        name = parts[0]
+        if len(name) > 2:
+            masked_name = name[:2] + "***"
+        else:
+            masked_name = name + "***"
+            
+    # Location
+    location = ""
+    if order.city_fk:
+        location = order.city_fk.name
+    elif order.city:
+        location = order.city
+    else:
+        location = "Türkiye"
+        
+    # Product
+    product_item = order.items.first()
+    product_name = "Ürün"
+    product_image = "/static/images/placeholder.jpg"
+    product_desc = ""
+    
+    if product_item:
+        product = product_item.product
+        product_name = product.name
+        if product.images.exists():
+            product_image = product.images.first().image.url
+            
+        if product.description:
+            desc = product.description
+            if len(desc) > 50:
+                desc = desc[:47] + "..."
+            product_desc = desc
+            
+    # Time Ago
+    now = timezone.now()
+    diff = now - order.created_at
+    
+    if diff.total_seconds() < 300: # Less than 5 minutes
+        time_ago = "Şimdi"
+    else:
+        time_ago = timesince(order.created_at).split(',')[0] # "1 minute" or "2 hours"
+        
+        # Translate common time strings if needed (basic mapping)
+        time_ago = time_ago.replace('minutes', 'dakika').replace('minute', 'dakika')
+        time_ago = time_ago.replace('hours', 'saat').replace('hour', 'saat')
+        time_ago = time_ago.replace('days', 'gün').replace('day', 'gün')
+        time_ago = f"{time_ago} önce"
+
+    data = {
+        "name": masked_name,
+        "location": location,
+        "product_name": product_name,
+        "product_image": product_image,
+        "product_description": product_desc,
+        "time_ago": time_ago
+    }
+    
+    return JsonResponse(data)
