@@ -34,6 +34,9 @@ class Order(models.Model):
     cod_fee = models.DecimalField(max_digits=10, decimal_places=2, default=0.00, verbose_name="Kapıda Ödeme Bedeli")
     total_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0.00, verbose_name="Toplam Tutar")
 
+    # Sipariş Takip
+    tracking_number = models.CharField(max_length=10, unique=True, null=True, blank=True, verbose_name="Sipariş Takip Numarası")
+    
     # Kargo Entegrasyonu
     cargo_firm = models.CharField(max_length=100, blank=True, null=True, verbose_name="Kargo Firması")
     tracking_code = models.CharField(max_length=100, blank=True, null=True, verbose_name="Takip Kodu")

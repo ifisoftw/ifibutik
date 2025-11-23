@@ -6,6 +6,8 @@ from products.models import Product
 from addresses.models import City, District, Neighborhood
 from django.views.decorators.http import require_POST
 import json
+import random
+import string
 
 @require_POST
 def create_order(request):
@@ -41,12 +43,22 @@ def create_order(request):
     if len(selected_product_ids) < campaign.min_quantity:
         return HttpResponse(f"En az {campaign.min_quantity} adet ürün seçmelisiniz.", status=400)
 
+    # 10 haneli unique tracking number oluştur
+    def generate_tracking_number():
+        while True:
+            tracking = ''.join(random.choices(string.digits, k=10))
+            if not Order.objects.filter(tracking_number=tracking).exists():
+                return tracking
+    
+    tracking_number = generate_tracking_number()
+
     # Siparişi oluştur
     order = Order.objects.create(
         campaign=campaign,
         status='new',
         customer_name=customer_name,
         phone=phone,
+        tracking_number=tracking_number,  # Yeni eklenen alan
         # ForeignKey ilişkileri
         city_fk=city_obj,
         district_fk=district_obj,
@@ -56,9 +68,9 @@ def create_order(request):
         district=district_obj.name if district_obj else "",
         full_address=full_address,
         campaign_price=campaign.price,
-        cargo_price=campaign.shipping_price, # Şimdilik sabit, mantık eklenebilir
-        cod_fee=campaign.cod_price,
-        total_amount=campaign.price + campaign.cod_price # Basit hesap
+        cargo_price=campaign.shipping_price_discounted,  # İndirimli fiyat kullan
+        cod_fee=campaign.cod_price_discounted,  # İndirimli fiyat kullan
+        total_amount=campaign.price + campaign.shipping_price_discounted + campaign.cod_price_discounted  # Doğru hesaplama
     )
     
     # Sipariş kalemlerini ekle
@@ -82,10 +94,41 @@ def create_order(request):
         
         # Stok düşme işlemi burada yapılabilir
     
+    # Siparişi session'a kaydet (success sayfası için)
+    request.session['last_order_id'] = order.id
+    request.session['order_completed'] = True
+    
     # Başarılı olursa HTMX ile yönlendir
     response = HttpResponse()
     response['HX-Redirect'] = '/orders/success/'
     return response
 
 def order_success(request):
-    return render(request, 'orders/success.html')
+    # Session kontrolü - sadece sipariş sonrası göster
+    if not request.session.get('order_completed'):
+        return redirect('home')
+    
+    # Order ID'yi session'dan al
+    order_id = request.session.get('last_order_id')
+    if not order_id:
+        return redirect('home')
+    
+    # Order'ı getir
+    try:
+        order = Order.objects.get(id=order_id)
+    except Order.DoesNotExist:
+        return redirect('home')
+    
+    # Session'ı temizle (tekrar erişimi engelle)
+    request.session.pop('order_completed', None)
+    request.session.pop('last_order_id', None)
+    
+    # Order items'ları da getir
+    order_items = order.items.select_related('product').all()
+    
+    context = {
+        'order': order,
+        'order_items': order_items,
+    }
+    
+    return render(request, 'orders/success.html', context)

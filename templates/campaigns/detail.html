@@ -513,15 +513,43 @@
                          </div>
                          <div class="flex justify-between items-center">
                              <span class="text-sm text-gray-600">Kargo</span>
+                             {% if campaign.shipping_price_discounted == 0 %}
+                                 <div class="flex items-center gap-2">
+                                     {% if campaign.shipping_price > 0 %}
+                                         <span class="text-xs text-gray-400 line-through">{{ campaign.shipping_price|floatformat:0 }}₺</span>
+                                     {% endif %}
                              <span class="text-xs font-bold bg-gradient-to-r from-green-500 to-green-600 text-white px-3 py-1 rounded-full">ÜCRETSİZ</span>
+                                 </div>
+                             {% else %}
+                                 <div class="flex items-center gap-2">
+                                     {% if campaign.shipping_price != campaign.shipping_price_discounted %}
+                                         <span class="text-xs text-gray-400 line-through">{{ campaign.shipping_price|floatformat:0 }}₺</span>
+                                     {% endif %}
+                                     <span class="font-bold text-gray-900">{{ campaign.shipping_price_discounted|floatformat:0 }}₺</span>
+                                 </div>
+                             {% endif %}
                          </div>
                          <div class="flex justify-between items-center">
                              <span class="text-sm text-gray-600">Kapıda Ödeme</span>
-                             <span class="font-bold text-gray-900">{{ campaign.cod_price|floatformat:0 }}₺</span>
+                             {% if campaign.cod_price_discounted == 0 %}
+                                 <div class="flex items-center gap-2">
+                                     {% if campaign.cod_price > 0 %}
+                                         <span class="text-xs text-gray-400 line-through">{{ campaign.cod_price|floatformat:0 }}₺</span>
+                                     {% endif %}
+                                     <span class="text-xs font-bold bg-gradient-to-r from-green-500 to-green-600 text-white px-3 py-1 rounded-full">ÜCRETSİZ</span>
+                                 </div>
+                             {% else %}
+                                 <div class="flex items-center gap-2">
+                                     {% if campaign.cod_price != campaign.cod_price_discounted %}
+                                         <span class="text-xs text-gray-400 line-through">{{ campaign.cod_price|floatformat:0 }}₺</span>
+                                     {% endif %}
+                                     <span class="font-bold text-gray-900">{{ campaign.cod_price_discounted|floatformat:0 }}₺</span>
+                                 </div>
+                             {% endif %}
                          </div>
                          <div class="pt-4 border-t border-brand-pink/20 flex justify-between items-center">
                              <span class="text-base font-bold text-gray-900">Toplam</span>
-                             <span class="text-2xl font-black gradient-text">{{ campaign.price|add:campaign.cod_price|floatformat:0 }}₺</span>
+                             <span class="text-2xl font-black gradient-text">{{ campaign.price|add:campaign.shipping_price_discounted|add:campaign.cod_price_discounted|floatformat:0 }}₺</span>
                          </div>
                      </div>
                 </div>
