@@ -130,16 +130,22 @@ def order_detail_modal(request, pk):
 @admin_required('manage_orders')
 def order_update_status(request, pk):
     """Sipariş durumu güncelleme"""
-    order = get_object_or_404(Order, pk=pk)
+    order = get_object_or_404(
+        Order.objects.select_related(
+            'campaign', 'city_fk', 'district_fk', 'neighborhood_fk'
+        ).prefetch_related('items__product'),
+        pk=pk
+    )
     
     if request.method == 'POST':
         new_status = request.POST.get('status')
         order.status = new_status
         order.save()
         
-        response = HttpResponse()
-        response['HX-Trigger'] = 'orderStatusUpdated'
-        return response
+        # Return the updated row
+        return render(request, 'admin_panel/orders/partials/order_row.html', {
+            'order': order,
+        })
     
     return HttpResponse(status=405)
 
@@ -227,7 +233,11 @@ def order_bulk_action(request):
 @admin_required('manage_orders')
 def order_print_view(request):
     """Toplu yazdırma sayfası"""
-    order_ids = request.session.get('print_orders', [])
+    if request.method == 'POST':
+        order_ids = request.POST.getlist('selected_items')
+    else:
+        order_ids = request.session.get('print_orders', [])
+    
     if not order_ids:
         return HttpResponse('Yazdırılacak sipariş bulunamadı', status=404)
     
