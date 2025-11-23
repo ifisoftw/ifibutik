@@ -94,7 +94,10 @@ def create_order(request):
             selected_size=size_name
         )
         
-        # Stok düşme işlemi burada yapılabilir
+        # Stok düşme işlemi
+        if product.stock_qty > 0:
+            product.stock_qty -= 1
+            product.save(update_fields=['stock_qty'])
     
     # Siparişi session'a kaydet (success sayfası için)
     request.session['last_order_id'] = order.id

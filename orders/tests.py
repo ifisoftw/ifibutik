@@ -100,6 +100,35 @@ class OrderCreateViewTest(TestCase):
         self.assertEqual(response.status_code, 400)
         self.assertIn(b"En az 2 adet", response.content)
 
+    def test_stock_reduction_on_order(self):
+        """Test that product stock is reduced when order is created"""
+        # Initial stock
+        initial_stock = self.product.stock_qty
+        self.assertEqual(initial_stock, 10)
+        
+        url = reverse('create_order')
+        data = {
+            'campaign_id': self.campaign.id,
+            'first_name': 'Jane',
+            'last_name': 'Doe',
+            'phone': '5559876543',
+            'city': self.city.id,
+            'district': self.district.id,
+            'neighborhood': self.neighborhood.id,
+            'address_detail': 'Test Address Detail',
+            'selected_products[]': [self.product.id],
+            'selected_sizes[]': [self.size.slug]
+        }
+        response = self.client.post(url, data)
+        self.assertEqual(response.status_code, 200)
+        
+        # Refresh product from DB
+        self.product.refresh_from_db()
+        
+        # Check stock has been reduced
+        self.assertEqual(self.product.stock_qty, 9)
+        self.assertEqual(self.product.stock_qty, initial_stock - 1)
+
 class OrderSuccessViewTest(TestCase):
     def setUp(self):
         self.client = Client()
