@@ -10,7 +10,7 @@ def home_view(request):
     return render(request, 'campaigns/no_campaign.html')
 
 def campaign_detail(request, slug):
-    campaign = get_object_or_404(Campaign, slug=slug)
+    campaign = get_object_or_404(Campaign, slug=slug, is_active=True)
     # Fetch other active campaigns for the tab navigation
     other_campaigns = Campaign.objects.filter(is_active=True).exclude(id=campaign.id)
     all_campaigns = Campaign.objects.filter(is_active=True).order_by('id') # Or any specific ordering

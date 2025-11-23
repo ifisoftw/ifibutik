@@ -1,0 +1,71 @@
+# Test Dokümantasyonu
+
+## Genel Bakış
+Bu proje için toplam **22 adet** birim testi (unit test) yazılmıştır. Testler, uygulamanın kritik iş mantığını, veri bütünlüğünü ve güvenlik kontrollerini doğrulamayı amaçlamaktadır.
+
+Test paketi aşağıdaki ana modülleri kapsamaktadır:
+1.  **Ürünler (Products)**
+2.  **Kampanyalar (Campaigns)**
+3.  **Siparişler (Orders)**
+4.  **Admin Paneli (Admin Panel)**
+
+## Test Kapsamı
+
+### 1. Ürünler (Products)
+Dosya: [products/tests.py](file:///Users/macbook/Documents/Django%20Projects/Django%20Projects/Bussiness/butik/products/tests.py)
+
+*   **Model Testleri:**
+    *   [test_product_creation](file:///Users/macbook/Documents/Django%20Projects/Django%20Projects/Bussiness/butik/products/tests.py#13-20): Ürünlerin isim, SKU, stok ve aktiflik durumunun doğru kaydedildiğini doğrular.
+    *   [test_product_str](file:///Users/macbook/Documents/Django%20Projects/Django%20Projects/Bussiness/butik/products/tests.py#21-24): Ürün nesnesinin string temsilinin (ürün adı) doğru olduğunu kontrol eder.
+    *   [test_sku_uniqueness](file:///Users/macbook/Documents/Django%20Projects/Django%20Projects/Bussiness/butik/products/tests.py#25-32): Aynı SKU'ya sahip iki ürünün oluşturulamayacağını (benzersizlik kısıtlaması) doğrular.
+    *   [test_image_creation](file:///Users/macbook/Documents/Django%20Projects/Django%20Projects/Bussiness/butik/products/tests.py#50-54): Ürün görsellerinin ürünle doğru ilişkilendirildiğini kontrol eder.
+    *   [test_image_ordering](file:///Users/macbook/Documents/Django%20Projects/Django%20Projects/Bussiness/butik/products/tests.py#59-64): Görsellerin `sort_order` alanına göre doğru sıralandığını doğrular.
+
+### 2. Kampanyalar (Campaigns)
+Dosya: [campaigns/tests.py](file:///Users/macbook/Documents/Django%20Projects/Django%20Projects/Bussiness/butik/campaigns/tests.py)
+
+*   **Model Testleri:**
+    *   [test_campaign_creation](file:///Users/macbook/Documents/Django%20Projects/Django%20Projects/Bussiness/butik/campaigns/tests.py#16-21): Kampanya başlığı, slug, fiyat ve aktiflik durumunu doğrular.
+    *   [test_slug_uniqueness](file:///Users/macbook/Documents/Django%20Projects/Django%20Projects/Bussiness/butik/campaigns/tests.py#22-30): Aynı URL yapısına (slug) sahip iki kampanyanın oluşturulamayacağını doğrular.
+    *   [test_product_ordering](file:///Users/macbook/Documents/Django%20Projects/Django%20Projects/Bussiness/butik/campaigns/tests.py#52-57): Kampanya içindeki ürünlerin belirlenen sıraya göre listelendiğini kontrol eder.
+*   **Görünüm (View) Testleri:**
+    *   [test_campaign_detail_active](file:///Users/macbook/Documents/Django%20Projects/Django%20Projects/Bussiness/butik/campaigns/tests.py#75-83): Aktif bir kampanyanın detay sayfasının başarıyla yüklendiğini (200 OK) ve fiyat bilgisinin doğru gösterildiğini doğrular.
+    *   [test_campaign_detail_inactive](file:///Users/macbook/Documents/Django%20Projects/Django%20Projects/Bussiness/butik/campaigns/tests.py#84-89): Pasif (aktif olmayan) bir kampanyaya erişilmek istendiğinde **404 Sayfa Bulunamadı** hatası döndüğünü doğrular.
+
+### 3. Siparişler (Orders)
+Dosya: [orders/tests.py](file:///Users/macbook/Documents/Django%20Projects/Django%20Projects/Bussiness/butik/orders/tests.py)
+
+*   **Model Testleri:**
+    *   [test_order_creation](file:///Users/macbook/Documents/Django%20Projects/Django%20Projects/Bussiness/butik/orders/tests.py#22-34): Siparişin müşteri bilgileri, adres, takip numarası ve tutar bilgileriyle doğru oluşturulduğunu doğrular.
+*   **Sipariş Oluşturma (Create Order) Testleri:**
+    *   [test_create_order_success](file:///Users/macbook/Documents/Django%20Projects/Django%20Projects/Bussiness/butik/orders/tests.py#54-83): Geçerli verilerle sipariş oluşturulduğunda veritabanına kaydın yapıldığını, sipariş kalemlerinin eklendiğini ve başarı sayfasına yönlendirildiğini doğrular. Ayrıca oturum (session) bilgilerinin doğru set edildiğini kontrol eder.
+    *   [test_create_order_validation_error](file:///Users/macbook/Documents/Django%20Projects/Django%20Projects/Bussiness/butik/orders/tests.py#84-102): Kampanyanın minimum adet şartı karşılanmadığında siparişin reddedildiğini (400 Bad Request) doğrular.
+*   **Sipariş Başarısı (Order Success) Testleri:**
+    *   [test_order_success_access](file:///Users/macbook/Documents/Django%20Projects/Django%20Projects/Bussiness/butik/orders/tests.py#113-124): Sipariş tamamlandıktan sonra başarı sayfasına erişilebildiğini doğrular.
+    *   [test_order_success_no_session](file:///Users/macbook/Documents/Django%20Projects/Django%20Projects/Bussiness/butik/orders/tests.py#125-130): Sipariş tamamlamadan doğrudan başarı sayfasına erişilmek istendiğinde ana sayfaya yönlendirildiğini doğrular (Güvenlik kontrolü).
+
+### 4. Admin Paneli (Admin Panel)
+Dosya: [admin_panel/tests.py](file:///Users/macbook/Documents/Django%20Projects/Django%20Projects/Bussiness/butik/admin_panel/tests.py)
+
+*   **Giriş (Login) Testleri:**
+    *   [test_login_page_loads](file:///Users/macbook/Documents/Django%20Projects/Django%20Projects/Bussiness/butik/admin_panel/tests.py#19-25): Giriş sayfasının hatasız açıldığını doğrular.
+    *   [test_valid_login](file:///Users/macbook/Documents/Django%20Projects/Django%20Projects/Bussiness/butik/admin_panel/tests.py#26-32): Doğru kullanıcı adı ve şifre ile giriş yapıldığında panele yönlendirildiğini doğrular.
+    *   [test_invalid_login](file:///Users/macbook/Documents/Django%20Projects/Django%20Projects/Bussiness/butik/admin_panel/tests.py#33-40): Yanlış bilgilerle giriş yapıldığında hata mesajı gösterildiğini doğrular.
+*   **Dashboard Erişim Testleri:**
+    *   [test_dashboard_access_denied_anonymous](file:///Users/macbook/Documents/Django%20Projects/Django%20Projects/Bussiness/butik/admin_panel/tests.py#53-58): Giriş yapmamış kullanıcının panele erişemeyeceğini doğrular.
+    *   [test_dashboard_access_denied_no_permission](file:///Users/macbook/Documents/Django%20Projects/Django%20Projects/Bussiness/butik/admin_panel/tests.py#59-68): Giriş yapmış ancak yetkisi olmayan kullanıcının (örn. sadece görüntüleyici) panele erişemeyeceğini doğrular.
+    *   [test_dashboard_access_granted](file:///Users/macbook/Documents/Django%20Projects/Django%20Projects/Bussiness/butik/admin_panel/tests.py#69-75): Yetkili kullanıcının panele başarıyla erişebildiğini doğrular.
+
+## Testleri Çalıştırma
+
+Tüm testleri çalıştırmak için terminalde şu komutu kullanabilirsiniz:
+
+```bash
+python manage.py test
+```
+
+Belirli bir uygulama için testleri çalıştırmak isterseniz:
+
+```bash
+python manage.py test orders
+```

@@ -366,7 +366,7 @@
         },
         xaxis: {
             categories: chartData.labels,
-            tickAmount: 12,
+            tickAmount: 24,
             labels: {
                 rotate: 0,
                 rotateAlways: false,
@@ -383,7 +383,7 @@
                     // Sadece 3 saatte bir göster (0, 3, 6, 9, 12, 15, 18, 21)
                     if (value && value.includes(':')) {
                         const hour = parseInt(value.split(':')[0]);
-                        if (hour % 3 === 0) {
+                        if (hour % 1 === 0) {
                             return value;
                         }
                         return '';
