@@ -62,6 +62,11 @@ def order_list(request):
         orders = orders.filter(created_at__date__gte=date_from)
     if date_to:
         orders = orders.filter(created_at__date__lte=date_to)
+    
+    # Size filter
+    size_filter = request.GET.get('size', '').strip()
+    if size_filter:
+        orders = orders.filter(items__selected_size__icontains=size_filter).distinct()
 
     # Sorting
     sort = request.GET.get('sort', 'created_at')
@@ -93,6 +98,13 @@ def order_list(request):
     base_query = preserved_query.urlencode()
     base_query = f'&{base_query}' if base_query else ''
 
+    # Get available sizes from OrderItems
+    available_sizes = OrderItem.objects.filter(
+        selected_size__isnull=False
+    ).exclude(
+        selected_size=''
+    ).values_list('selected_size', flat=True).distinct().order_by('selected_size')
+    
     context = {
         'page_obj': page_obj,
         'status': status,
@@ -100,12 +112,14 @@ def order_list(request):
         'campaign_id': campaign_id,
         'date_from': date_from,
         'date_to': date_to,
+        'size_filter': size_filter,
         'per_page': per_page,
         'sort': sort,
         'direction': direction,
         'query_string': base_query,
         'status_choices': Order.STATUS_CHOICES,
         'campaigns': Campaign.objects.filter(is_active=True).order_by('title'),
+        'available_sizes': available_sizes,
         'per_page_options': [10, 20, 30, 50],
         'stats': stats,  # İstatistikler eklendi
     }
