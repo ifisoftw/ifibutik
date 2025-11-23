@@ -26,6 +26,7 @@ class Command(BaseCommand):
             ("40 (L)", "40-l", "Bel: 38cm, Basen: 98cm"),
             ("42 (XL)", "42-xl", "Bel: 40cm, Basen: 102cm"),
             ("44 (XXL)", "44-xxl", "Bel: 42cm, Basen: 106cm"),
+            ("46 (3XL)", "46-3xl", "Bel: 44cm, Basen: 110cm"),
         ]
         
         size_objects = []
@@ -34,33 +35,48 @@ class Command(BaseCommand):
             size_objects.append(size)
 
         self.stdout.write('Downloading placeholder images...')
-        # Using picsum for random fashion-like images
-        def get_image():
-            response = requests.get(f'https://picsum.photos/800/800?random={random.randint(1, 1000)}')
-            if response.status_code == 200:
-                return ContentFile(response.content)
+        # Using loremflickr for specific keywords
+        def get_image(keywords="hijab,dress"):
+            try:
+                # Adding a random parameter to avoid caching and get different images
+                response = requests.get(f'https://loremflickr.com/800/800/{keywords}?random={random.randint(1, 1000)}', timeout=10)
+                if response.status_code == 200:
+                    return ContentFile(response.content)
+            except Exception as e:
+                self.stdout.write(self.style.WARNING(f"Could not download image: {e}"))
             return None
 
         self.stdout.write('Creating Products...')
         products = []
-        product_names = [
-            "İpek Şal", "Pamuklu Tunik", "Kot Etek", "Keten Pantolon", "Desenli Elbise",
-            "Triko Kazak", "Deri Çanta", "Spor Ayakkabı", "Klasik Gömlek", "Yazlık Bluz"
+        product_data = [
+            ("Siyah Ferace", "ferace,black"),
+            ("Çiçekli Tesettür Elbise", "dress,floral"),
+            ("Pileli Etek", "skirt,pleated"),
+            ("Oversize Tunik", "tunic,fashion"),
+            ("İpek Eşarp", "scarf,silk"),
+            ("Pamuklu Şal", "shawl,cotton"),
+            ("Kuşaklı Trençkot", "trenchcoat,fashion"),
+            ("Bol Paça Pantolon", "pants,wideleg"),
+            ("Abaya", "abaya,black"),
+            ("Uzun Hırka", "cardigan,long"),
+            ("Kot Elbise", "denim,dress"),
+            ("Keten Takım", "linen,suit"),
         ]
 
-        for i, name in enumerate(product_names):
+        for i, (name, keywords) in enumerate(product_data):
             p = Product.objects.create(
                 name=name,
                 sku=f"SKU-{random.randint(1000, 9999)}",
-                description=f"{name} harika bir ürün. %100 kaliteli kumaştan üretilmiştir.",
+                description=f"{name} harika bir ürün. %100 kaliteli kumaştan üretilmiştir. Tesettür giyim modasına uygundur.",
                 stock_qty=random.randint(10, 100),
                 is_active=True
             )
             products.append(p)
             
             # Add 2-3 images per product
+            self.stdout.write(f"  Downloading images for {name}...")
             for j in range(random.randint(2, 3)):
-                img_content = get_image()
+                img_content = get_image(keywords)
                 if img_content:
                     img_content.name = f"{slugify(name)}_{j}.jpg"
                     ProductImage.objects.create(
@@ -74,12 +90,20 @@ class Command(BaseCommand):
             {
                 "title": "3 ADET TESETTÜR ALT-ÜST TAKIM",
                 "price": 1899.00,
-                "min_qty": 3
+                "min_qty": 3,
+                "keywords": "suit,hijab"
             },
             {
-                "title": "3 ADET TESETTÜR TUNİK",
+                "title": "3 ADET TESETTÜR TUNİK KAMPANYASI",
                 "price": 1499.00,
-                "min_qty": 3
+                "min_qty": 3,
+                "keywords": "tunic,hijab"
+            },
+            {
+                "title": "2'Lİ ABAYA FIRSATI",
+                "price": 2500.00,
+                "min_qty": 2,
+                "keywords": "abaya"
             }
         ]
 
@@ -88,7 +112,7 @@ class Command(BaseCommand):
             c = Campaign.objects.create(
                 title=data["title"],
                 slug=slugify(data["title"]),
-                description="Bu kampanya ile harika kombinler yapabilirsiniz. Sınırlı stok!",
+                description="Bu kampanya ile harika kombinler yapabilirsiniz. Sınırlı stok! Sezonun en trend parçaları.",
                 price=data["price"],
                 min_quantity=data["min_qty"],
                 shipping_price=50.00,
@@ -96,13 +120,15 @@ class Command(BaseCommand):
             )
             
             # Add banner
-            banner_content = get_image()
+            self.stdout.write(f"  Downloading banner for {data['title']}...")
+            banner_content = get_image(data.get("keywords", "fashion"))
             if banner_content:
                 c.banner_image.save(f"banner_{c.slug}.jpg", banner_content)
                 c.save()
 
             # Add random products to campaign
-            selected_products = random.sample(products, 5)
+            # Try to match products somewhat if possible, but random is fine for now
+            selected_products = random.sample(products, min(len(products), 6))
             for idx, prod in enumerate(selected_products):
                 CampaignProduct.objects.create(
                     campaign=c,
@@ -133,7 +159,12 @@ class Command(BaseCommand):
             
             # Add items
             campaign_products = campaign.campaignproduct_set.all()
-            for cp in campaign_products[:campaign.min_quantity]:
+            # Add items up to min_quantity or more
+            items_to_add = campaign_products[:campaign.min_quantity]
+            if not items_to_add:
+                 items_to_add = campaign_products # Fallback
+            
+            for cp in items_to_add:
                 OrderItem.objects.create(
                     order=order,
                     product=cp.product,

@@ -33,12 +33,19 @@ urlpatterns = [
     path('products/<int:pk>/edit/', product_views.product_edit_modal, name='admin_product_edit'),
     path('products/<int:pk>/update/', product_views.product_update, name='admin_product_update'),
     path('products/<int:pk>/delete/', product_views.product_delete, name='admin_product_delete'),
+    path('products/<int:pk>/toggle/', product_views.product_toggle, name='admin_product_toggle'),
+    path('products/bulk-action/', product_views.product_bulk_action, name='admin_product_bulk_action'),
+    path('products/image/<int:pk>/delete/', product_views.product_image_delete, name='admin_product_image_delete'),
+    path('products/<int:pk>/images/<int:image_id>/delete/', product_views.product_image_delete, name='admin_product_image_delete'),
+    path('products/<int:pk>/stock/', product_views.product_stock_update, name='admin_product_stock_update'),
     
     # Orders
     path('orders/', order_views.order_list, name='admin_orders'),
     path('orders/<int:pk>/', order_views.order_detail_modal, name='admin_order_detail'),
     path('orders/<int:pk>/update-status/', order_views.order_update_status, name='admin_order_status'),
     path('orders/<int:pk>/update-cargo/', order_views.order_update_cargo, name='admin_order_cargo'),
+    path('orders/bulk-action/', order_views.order_bulk_action, name='admin_order_bulk_action'),
+    path('orders/print/', order_views.order_print_view, name='admin_order_print'),
     
     # Reports
     path('reports/', report_views.reports, name='admin_reports'),

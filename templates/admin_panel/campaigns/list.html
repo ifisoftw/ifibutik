@@ -37,8 +37,7 @@
                 <template x-for="id in selectedItems" :key="id">
                     <input type="hidden" name="selected_items" :value="id">
                 </template>
-                {% include 'admin_panel/components/button.html' with label='Aktif Yap' variant='primary' size='sm'
-                type='submit' %}
+                {% include 'admin_panel/components/button.html' with label='Aktif Yap' variant='primary' size='sm' type='submit' %}
             </form>
             <form hx-post="{% url 'admin_campaign_bulk_action' %}" hx-swap="none" class="contents">
                 {% csrf_token %}
@@ -46,8 +45,7 @@
                 <template x-for="id in selectedItems" :key="id">
                     <input type="hidden" name="selected_items" :value="id">
                 </template>
-                {% include 'admin_panel/components/button.html' with label='Pasif Yap' variant='secondary' size='sm'
-                type='submit' %}
+                {% include 'admin_panel/components/button.html' with label='Pasif Yap' variant='secondary' size='sm' type='submit' %}
             </form>
             <form hx-post="{% url 'admin_campaign_bulk_action' %}" hx-swap="none" class="contents">
                 {% csrf_token %}
@@ -55,8 +53,7 @@
                 <template x-for="id in selectedItems" :key="id">
                     <input type="hidden" name="selected_items" :value="id">
                 </template>
-                {% include 'admin_panel/components/button.html' with label='Sil' variant='danger' size='sm'
-                type='submit' %}
+                {% include 'admin_panel/components/button.html' with label='Sil' variant='danger' size='sm' type='submit' %}
             </form>
             {% include 'admin_panel/components/button.html' with label='İptal' variant='ghost' size='sm' %}
         </div>
