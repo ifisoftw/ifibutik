@@ -1,0 +1,26 @@
+{% for product in products %}
+<div
+    class="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:border-primary transition-colors">
+    <div class="flex items-center gap-3">
+        {% if product.images.first %}
+        <img src="{{ product.images.first.image.url }}" class="w-12 h-12 object-cover rounded-lg">
+        {% else %}
+        <div class="w-12 h-12 bg-gray-100 rounded-lg"></div>
+        {% endif %}
+        <div>
+            <p class="font-semibold text-gray-900 text-sm">{{ product.name }}</p>
+            <p class="text-xs text-gray-500">SKU: {{ product.sku }}</p>
+        </div>
+    </div>
+    <button hx-post="{% url 'admin_campaign_product_add' campaign.id %}" hx-vals='{"product_id": "{{ product.id }}"}'
+        hx-swap="outerHTML" class="p-2 bg-primary text-white rounded-lg hover:bg-blue-600 transition-colors">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+        </svg>
+    </button>
+</div>
+{% empty %}
+<div class="text-center py-8 text-gray-500">
+    <p>Ürün bulunamadı</p>
+</div>
+{% endfor %}

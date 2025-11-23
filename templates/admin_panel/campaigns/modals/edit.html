@@ -31,8 +31,9 @@
                             d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
                     </svg>
                     <span>Mevcut Ürünler</span>
-                    <span class="px-2 py-0.5 bg-gray-100 text-gray-700 rounded-full text-xs font-semibold">{{
-                        campaign_products.count }}</span>
+                    <span id="campaign-product-count"
+                        class="px-2 py-0.5 bg-gray-100 text-gray-700 rounded-full text-xs font-semibold">
+                        {{ campaign_products.count }}</span>
                 </div>
             </button>
 
@@ -280,86 +281,43 @@
 
         <!-- Mevcut Ürünler Tab -->
         <div x-show="tab === 'products'" class="p-6" x-cloak>
-            <div class="space-y-3">
-                {% for cp in campaign_products %}
-                <div class="flex items-center gap-4 p-4 border border-gray-200 rounded-lg">
-                    {% if cp.product.images.first %}
-                    <img src="{{ cp.product.images.first.image.url }}" class="w-16 h-16 object-cover rounded-lg">
-                    {% else %}
-                    <div class="w-16 h-16 bg-gray-100 rounded-lg"></div>
-                    {% endif %}
-                    <div class="flex-1 min-w-0">
-                        <p class="font-semibold text-gray-900 text-sm">{{ cp.product.name }}</p>
-                        <p class="text-xs text-gray-500">SKU: {{ cp.product.sku }}</p>
-                        <div class="flex items-center gap-2 mt-1">
-                            <span class="text-xs text-gray-500">Sıra:</span>
-                            <input type="number" value="{{ cp.sort_order }}" min="0"
-                                class="w-16 px-2 py-1 text-xs border border-gray-300 rounded">
-                        </div>
-                    </div>
-                    <button class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M6 18L18 6M6 6l12 12"></path>
-                        </svg>
-                    </button>
-                </div>
-                {% empty %}
-                <div class="text-center py-12 text-gray-400">
-                    <svg class="w-12 h-12 mx-auto mb-3 text-gray-300" fill="none" stroke="currentColor"
-                        viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4">
-                        </path>
-                    </svg>
-                    <p>Bu kampanyada henüz ürün yok</p>
-                </div>
-                {% endfor %}
-            </div>
+            {% include 'admin_panel/campaigns/partials/existing_product_list.html' %}
         </div>
 
         <!-- Ürün Ekle Tab -->
-        <div x-show="tab === 'add_product'" class="p-6" x-cloak>
+        <div x-show="tab === 'add_product'" class="p-6" x-cloak x-data="{ activeFilter: 'all' }">
             <div class="mb-4">
-                <input type="text" placeholder="Ürün ara..."
+                <input type="text" placeholder="Ürün ara..." name="search"
+                    hx-get="{% url 'admin_campaign_product_search' campaign.id %}"
+                    hx-trigger="keyup changed delay:500ms" hx-target="#add-product-list"
                     class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all">
             </div>
 
             <!-- Filtreler -->
             <div class="flex items-center gap-2 mb-4">
-                <button class="px-3 py-1.5 text-xs font-medium bg-primary text-white rounded-full">Tüm Ürünler</button>
-                <button
-                    class="px-3 py-1.5 text-xs font-medium bg-white text-gray-600 border border-gray-300 rounded-full hover:bg-gray-50">Kampanyası
-                    Olmayan</button>
-                <button
-                    class="px-3 py-1.5 text-xs font-medium bg-white text-gray-600 border border-gray-300 rounded-full hover:bg-gray-50">Çoklu
-                    Kampanyalı</button>
+                <button hx-get="{% url 'admin_campaign_product_search' campaign.id %}?filter=all"
+                    hx-target="#add-product-list" @click="activeFilter = 'all'"
+                    :class="activeFilter === 'all' ? 'bg-primary text-white hover:bg-blue-600' : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'"
+                    class="px-3 py-1.5 text-xs font-medium rounded-full transition-colors">
+                    Tüm Ürünler
+                </button>
+                <button hx-get="{% url 'admin_campaign_product_search' campaign.id %}?filter=no_campaign"
+                    hx-target="#add-product-list" @click="activeFilter = 'no_campaign'"
+                    :class="activeFilter === 'no_campaign' ? 'bg-primary text-white hover:bg-blue-600' : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'"
+                    class="px-3 py-1.5 text-xs font-medium rounded-full transition-colors">
+                    Kampanyası Olmayan
+                </button>
+                <button hx-get="{% url 'admin_campaign_product_search' campaign.id %}?filter=multi_campaign"
+                    hx-target="#add-product-list" @click="activeFilter = 'multi_campaign'"
+                    :class="activeFilter === 'multi_campaign' ? 'bg-primary text-white hover:bg-blue-600' : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'"
+                    class="px-3 py-1.5 text-xs font-medium rounded-full transition-colors">
+                    Çoklu Kampanyalı
+                </button>
             </div>
 
             <!-- Ürün Listesi -->
-            <div class="space-y-2">
-                {% for product in all_products|slice:":10" %}
-                <div
-                    class="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:border-primary transition-colors">
-                    <div class="flex items-center gap-3">
-                        {% if product.images.first %}
-                        <img src="{{ product.images.first.image.url }}" class="w-12 h-12 object-cover rounded-lg">
-                        {% else %}
-                        <div class="w-12 h-12 bg-gray-100 rounded-lg"></div>
-                        {% endif %}
-                        <div>
-                            <p class="font-semibold text-gray-900 text-sm">{{ product.name }}</p>
-                            <p class="text-xs text-gray-500">SKU: {{ product.sku }}</p>
-                        </div>
-                    </div>
-                    <button class="p-2 bg-primary text-white rounded-lg hover:bg-blue-600 transition-colors">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4">
-                            </path>
-                        </svg>
-                    </button>
-                </div>
-                {% endfor %}
+            <div id="add-product-list" class="space-y-2 h-96 overflow-y-auto">
+                {% include 'admin_panel/campaigns/partials/add_product_list.html' with products=all_products|slice:":20" %}
             </div>
         </div>
 

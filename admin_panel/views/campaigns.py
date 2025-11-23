@@ -1,20 +1,21 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.http import HttpResponse, JsonResponse
-from django.db.models import Count, Q
+from django.db.models import Count, Q, Max
 from django.core.paginator import Paginator
+from django.contrib import messages
+import json
+
 from campaigns.models import Campaign, CampaignProduct, SizeOption
 from products.models import Product
 from admin_panel.decorators import admin_required
-from django.contrib import messages
-import json
 
 
 @admin_required('manage_campaigns')
 def campaign_list(request):
     """Kampanya listesi"""
     campaigns = Campaign.objects.annotate(
-        product_count=Count('campaignproduct'),
-        order_count=Count('order')
+        product_count=Count('campaignproduct', distinct=True),
+        order_count=Count('order', distinct=True)
     )
     
     # Search
@@ -145,7 +146,7 @@ def campaign_create_modal(request):
 def campaign_edit_modal(request, pk):
     """Kampanya düzenleme modal'ı (HTMX)"""
     campaign = get_object_or_404(Campaign, pk=pk)
-    all_products = Product.objects.filter(is_active=True)
+    all_products = Product.objects.filter(is_active=True).exclude(campaignproduct__campaign=campaign)
     campaign_products = campaign.campaignproduct_set.select_related('product').order_by('sort_order')
     sizes = SizeOption.objects.all()
     
@@ -186,8 +187,12 @@ def campaign_update(request, pk):
             campaign.available_sizes.set(size_ids)
             
             # Trigger success event
+            messages.success(request, 'Kampanya başarıyla güncellendi')
             response = HttpResponse()
-            response['HX-Trigger'] = 'campaignUpdated, modalSuccess'
+            response['HX-Trigger'] = json.dumps({
+                'campaignListChanged': {},
+                'modalSuccess': {}
+            })
             return response
             
         except Exception as e:
@@ -209,7 +214,10 @@ def campaign_delete(request, pk):
         campaign.delete()
         
         response = HttpResponse()
-        response['HX-Trigger'] = 'campaignDeleted'
+        response['HX-Trigger'] = json.dumps({
+            'campaignDeleted': {},
+            'showToast': {'message': 'Kampanya silindi', 'type': 'error'}
+        })
         return response
     
     return HttpResponse(status=405)
@@ -223,6 +231,11 @@ def campaign_toggle(request, pk):
     if request.method == 'POST':
         campaign.is_active = not campaign.is_active
         campaign.save()
+        
+        if campaign.is_active:
+            messages.success(request, 'Kampanya aktif yapıldı')
+        else:
+            messages.warning(request, 'Kampanya pasif yapıldı')
         
         response = HttpResponse()
         response['HX-Trigger'] = 'campaignListChanged'
@@ -265,3 +278,157 @@ def campaign_bulk_action(request):
     
     return HttpResponse(status=405)
 
+
+@admin_required('manage_campaigns')
+def campaign_product_remove(request, pk):
+    if request.method != 'POST':
+        return HttpResponse(status=405)
+        
+    campaign_product = get_object_or_404(CampaignProduct, pk=pk)
+    campaign = campaign_product.campaign
+    campaign_product.delete()
+    
+    # Get updated list and count
+    campaign_products = campaign.campaignproduct_set.select_related('product').order_by('sort_order')
+    new_count = campaign_products.count()
+    
+    # Render updated list
+    list_html = render(request, 'admin_panel/campaigns/partials/existing_product_list.html', {
+        'campaign_products': campaign_products
+    }).content.decode('utf-8')
+    
+    # Get available products for add list
+    available_products = Product.objects.filter(is_active=True).exclude(
+        campaignproduct__campaign=campaign
+    )[:20]
+    
+    add_list_html = render(request, 'admin_panel/campaigns/partials/add_product_list.html', {
+        'products': available_products,
+        'campaign': campaign
+    }).content.decode('utf-8')
+    
+    response = HttpResponse(f"""
+        {list_html}
+        <span id="campaign-product-count" hx-swap-oob="true" class="px-2 py-0.5 bg-gray-100 text-gray-700 rounded-full text-xs font-semibold">
+            {new_count}
+        </span>
+        <div id="add-product-list" hx-swap-oob="true" class="space-y-2 h-96 overflow-y-auto">
+            {add_list_html}
+        </div>
+    """)
+    response['HX-Trigger'] = json.dumps({
+        'showToast': {'message': 'Ürün kampanyadan kaldırıldı', 'type': 'success'}
+    })
+    return response
+
+
+@admin_required('manage_campaigns')
+def campaign_product_reorder(request, pk):
+    if request.method != 'POST':
+        return HttpResponse(status=405)
+        
+    campaign_product = get_object_or_404(CampaignProduct, pk=pk)
+    sort_order = request.POST.get('sort_order')
+    
+    if sort_order:
+        campaign_product.sort_order = int(sort_order)
+        campaign_product.save()
+        
+    response = HttpResponse()
+    response['HX-Trigger'] = json.dumps({
+        'showToast': {'message': 'Sıralama güncellendi', 'type': 'success'}
+    })
+    response = HttpResponse()
+    response['HX-Trigger'] = json.dumps({
+        'showToast': {'message': 'Sıralama güncellendi', 'type': 'success'}
+    })
+    return response
+
+
+@admin_required('manage_campaigns')
+def campaign_product_search(request, pk):
+    """Kampanya ürün ekleme sekmesi için ürün arama"""
+    campaign = get_object_or_404(Campaign, pk=pk)
+    products = Product.objects.filter(is_active=True).exclude(
+        campaignproduct__campaign=campaign
+    )
+    
+    # Search
+    search = request.GET.get('search', '').strip()
+    if search:
+        products = products.filter(
+            Q(name__icontains=search) |
+            Q(sku__icontains=search)
+        )
+    
+    # Filter
+    filter_type = request.GET.get('filter')
+    if filter_type == 'no_campaign':
+        products = products.filter(campaignproduct__isnull=True)
+    elif filter_type == 'multi_campaign':
+        products = products.annotate(
+            c_count=Count('campaignproduct')
+        ).filter(c_count__gt=0)
+        
+    # Limit results
+    products = products[:20]
+    
+    return render(request, 'admin_panel/campaigns/partials/add_product_list.html', {
+        'products': products,
+        'campaign': campaign
+    })
+
+
+@admin_required('manage_campaigns')
+def campaign_product_add(request, pk):
+    """Kampanyaya ürün ekleme"""
+    if request.method != 'POST':
+        return HttpResponse(status=405)
+        
+    campaign = get_object_or_404(Campaign, pk=pk)
+    product_id = request.POST.get('product_id')
+    product = get_object_or_404(Product, pk=product_id)
+    
+    # Check if already exists
+    if CampaignProduct.objects.filter(campaign=campaign, product=product).exists():
+        return HttpResponse(status=400)
+        
+    # Get max sort order
+    max_order = CampaignProduct.objects.filter(campaign=campaign).aggregate(
+        Max('sort_order')
+    )['sort_order__max'] or 0
+    
+    CampaignProduct.objects.create(
+        campaign=campaign,
+        product=product,
+        sort_order=max_order + 1
+    )
+    
+    # Get updated list and count
+    campaign_products = campaign.campaignproduct_set.select_related('product').order_by('sort_order')
+    new_count = campaign_products.count()
+    
+    # Render updated list
+    list_html = render(request, 'admin_panel/campaigns/partials/existing_product_list.html', {
+        'campaign_products': campaign_products
+    }).content.decode('utf-8')
+    
+    response = HttpResponse(f"""
+        <button disabled 
+                x-init="setTimeout(() => $el.closest('.border-gray-200').remove(), 1000)"
+                class="p-2 bg-green-500 text-white rounded-lg cursor-default transition-colors">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+            </svg>
+        </button>
+        <span id="campaign-product-count" hx-swap-oob="true" class="px-2 py-0.5 bg-gray-100 text-gray-700 rounded-full text-xs font-semibold">
+            {new_count}
+        </span>
+        <div id="existing-product-list" hx-swap-oob="true" class="space-y-3">
+            {list_html}
+        </div>
+    """)
+    response['HX-Trigger'] = json.dumps({
+        'showToast': {'message': 'Ürün kampanyaya eklendi', 'type': 'success'}
+    })
+    return response

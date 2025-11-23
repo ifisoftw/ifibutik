@@ -3,8 +3,7 @@
 {% block title %}Kampanyalar{% endblock %}
 {% block content %}
 
-<section class="space-y-6" 
-         x-data="{ 
+<section class="space-y-6" x-data="{ 
              selectedItems: [],
              selectAll: false,
              allIds: [{% for c in page_obj %}'{{ c.id }}'{% if not forloop.last %},{% endif %}{% endfor %}],
@@ -26,43 +25,38 @@
          }">
 
     <!-- Bulk Actions Bar -->
-    <div x-show="selectedItems.length > 0" 
-         x-transition
-         x-cloak
-         class="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50">
+    <div x-show="selectedItems.length > 0" x-transition x-cloak
+        class="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50">
         <div class="glass-card rounded-2xl shadow-2xl px-6 py-4 flex items-center gap-4">
             <span class="text-sm font-semibold text-gray-900">
                 <span x-text="selectedItems.length"></span> kampanya seçildi
             </span>
-            <form hx-post="{% url 'admin_campaign_bulk_action' %}"
-                  hx-swap="none"
-                  class="contents">
+            <form hx-post="{% url 'admin_campaign_bulk_action' %}" hx-swap="none" class="contents">
                 {% csrf_token %}
                 <input type="hidden" name="action" value="activate">
                 <template x-for="id in selectedItems" :key="id">
                     <input type="hidden" name="selected_items" :value="id">
                 </template>
-                {% include 'admin_panel/components/button.html' with label='Aktif Yap' variant='primary' size='sm' type='submit' %}
+                {% include 'admin_panel/components/button.html' with label='Aktif Yap' variant='primary' size='sm'
+                type='submit' %}
             </form>
-            <form hx-post="{% url 'admin_campaign_bulk_action' %}"
-                  hx-swap="none"
-                  class="contents">
+            <form hx-post="{% url 'admin_campaign_bulk_action' %}" hx-swap="none" class="contents">
                 {% csrf_token %}
                 <input type="hidden" name="action" value="deactivate">
                 <template x-for="id in selectedItems" :key="id">
                     <input type="hidden" name="selected_items" :value="id">
                 </template>
-                {% include 'admin_panel/components/button.html' with label='Pasif Yap' variant='secondary' size='sm' type='submit' %}
+                {% include 'admin_panel/components/button.html' with label='Pasif Yap' variant='secondary' size='sm'
+                type='submit' %}
             </form>
-            <form hx-post="{% url 'admin_campaign_bulk_action' %}"
-                  hx-swap="none"
-                  class="contents">
+            <form hx-post="{% url 'admin_campaign_bulk_action' %}" hx-swap="none" class="contents">
                 {% csrf_token %}
                 <input type="hidden" name="action" value="delete">
                 <template x-for="id in selectedItems" :key="id">
                     <input type="hidden" name="selected_items" :value="id">
                 </template>
-                {% include 'admin_panel/components/button.html' with label='Sil' variant='danger' size='sm' type='submit' %}
+                {% include 'admin_panel/components/button.html' with label='Sil' variant='danger' size='sm'
+                type='submit' %}
             </form>
             {% include 'admin_panel/components/button.html' with label='İptal' variant='ghost' size='sm' %}
         </div>
@@ -74,20 +68,19 @@
             <div class="lg:col-span-2">
                 <label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Ara</label>
                 <div class="relative">
-                    <input type="text"
-                           name="search"
-                           value="{{ search }}"
-                           placeholder="Kampanya adı veya açıklama..."
-                           class="w-full rounded-xl border-gray-200 focus:ring-2 focus:ring-primary focus:border-transparent pl-10 pr-4 py-2.5">
-                    <svg class="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                    <input type="text" name="search" value="{{ search }}" placeholder="Kampanya adı veya açıklama..."
+                        class="w-full rounded-xl border-gray-200 focus:ring-2 focus:ring-primary focus:border-transparent pl-10 pr-4 py-2.5">
+                    <svg class="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" fill="none"
+                        stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                     </svg>
                 </div>
             </div>
             <div>
                 <label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Durum</label>
                 <select name="status"
-                        class="w-full rounded-xl border-gray-200 focus:ring-2 focus:ring-primary focus:border-transparent py-2.5">
+                    class="w-full rounded-xl border-gray-200 focus:ring-2 focus:ring-primary focus:border-transparent py-2.5">
                     <option value="">Tümü</option>
                     <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Aktif</option>
                     <option value="inactive" {% if status_filter == 'inactive' %}selected{% endif %}>Pasif</option>
@@ -96,7 +89,7 @@
             <div>
                 <label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Sayfa başına</label>
                 <select name="per_page"
-                        class="w-full rounded-xl border-gray-200 focus:ring-2 focus:ring-primary focus:border-transparent py-2.5">
+                    class="w-full rounded-xl border-gray-200 focus:ring-2 focus:ring-primary focus:border-transparent py-2.5">
                     {% for size in per_page_options %}
                     <option value="{{ size }}" {% if per_page == size %}selected{% endif %}>{{ size }}</option>
                     {% endfor %}
@@ -118,7 +111,7 @@
         <button hx-get="{% url 'admin_campaign_create' %}"
                 hx-target="#modal-container"
                 hx-swap="innerHTML"
-                class="flex items-center gap-2 px-4 py-2.5 bg-primary text-white font-semibold rounded-xl hover:bg-primary/90 shadow transition-all">
+            class="flex items-center gap-2 px-4 py-2.5 bg-primary text-white font-semibold rounded-xl hover:bg-primary/90 shadow transition-all">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
             </svg>
@@ -133,10 +126,8 @@
                 <thead class="bg-gray-50 text-[11px] font-semibold uppercase tracking-wide text-gray-500">
                     <tr>
                         <th class="px-4 py-3 w-12">
-                            <input type="checkbox" 
-                                   x-model="selectAll"
-                                   @change="toggleAll()"
-                                   class="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary">
+                            <input type="checkbox" x-model="selectAll" @change="toggleAll()"
+                                class="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary">
                         </th>
                         {% include 'admin_panel/orders/partials/sort_header.html' with label='ID' column='id' align='left' %}
                         {% include 'admin_panel/orders/partials/sort_header.html' with label='Kampanya' column='title' align='left' %}
@@ -154,8 +145,8 @@
                         <td class="px-4 py-4">
                             <input type="checkbox" 
                                    :checked="selectedItems.includes('{{ campaign.id }}')"
-                                   @change="toggleItem('{{ campaign.id }}')"
-                                   class="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary">
+                                @change="toggleItem('{{ campaign.id }}')"
+                                class="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary">
                         </td>
                         <td class="px-4 py-4 font-semibold text-gray-900">#{{ campaign.id }}</td>
                         <td class="px-4 py-4">
@@ -187,7 +178,8 @@
                                 Aktif
                             </span>
                             {% else %}
-                            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-600">
+                            <span
+                                class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-600">
                                 <span class="w-1.5 h-1.5 bg-gray-400 rounded-full mr-1.5"></span>
                                 Pasif
                             </span>
@@ -196,40 +188,44 @@
                         <td class="px-4 py-4">
                             <div class="flex items-center justify-center gap-2">
                                 <button hx-get="{% url 'admin_campaign_edit' campaign.id %}"
-                                        hx-target="#modal-container"
-                                        hx-swap="innerHTML"
-                                        class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                                        title="Düzenle">
+                                    hx-target="#modal-container" hx-swap="innerHTML"
+                                    class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                                    title="Düzenle">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z">
+                                        </path>
                                     </svg>
                                 </button>
-                                
-                                <button hx-post="{% url 'admin_campaign_toggle' campaign.id %}"
-                                        hx-target="closest tr"
-                                        hx-swap="outerHTML"
-                                        class="p-2 rounded-lg hover:bg-gray-100 transition-colors"
-                                        title="{% if campaign.is_active %}Pasif Yap{% else %}Aktif Yap{% endif %}">
-                                    <svg class="w-5 h-5 {% if campaign.is_active %}text-green-600{% else %}text-gray-400{% endif %}" 
-                                         fill="currentColor" viewBox="0 0 20 20">
+
+                                <button hx-post="{% url 'admin_campaign_toggle' campaign.id %}" hx-target="closest tr"
+                                    hx-swap="outerHTML" class="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                                    title="{% if campaign.is_active %}Pasif Yap{% else %}Aktif Yap{% endif %}">
+                                    <svg class="w-5 h-5 {% if campaign.is_active %}text-green-600{% else %}text-gray-400{% endif %}"
+                                        fill="currentColor" viewBox="0 0 20 20">
                                         {% if campaign.is_active %}
-                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"/>
+                                        <path fill-rule="evenodd"
+                                            d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z"
+                                            clip-rule="evenodd" />
                                         {% else %}
-                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8 7a1 1 0 00-1 1v4a1 1 0 001 1h4a1 1 0 001-1V8a1 1 0 00-1-1H8z" clip-rule="evenodd"/>
+                                        <path fill-rule="evenodd"
+                                            d="M10 18a8 8 0 100-16 8 8 0 000 16zM8 7a1 1 0 00-1 1v4a1 1 0 001 1h4a1 1 0 001-1V8a1 1 0 00-1-1H8z"
+                                            clip-rule="evenodd" />
                                         {% endif %}
                                     </svg>
                                 </button>
-                                
-                                <button @click="$store.confirm.ask('{{ campaign.title }} kampanyasını silmek istediğinizden emin misiniz?', () => {
+
+                                <button @click="const row = $el.closest('tr'); $store.confirm.ask('{{ campaign.title }} kampanyasını silmek istediğinizden emin misiniz?', () => {
                                             htmx.ajax('POST', '{% url 'admin_campaign_delete' campaign.id %}', {
-                                                target: 'closest tr',
+                                                target: row,
                                                 swap: 'delete'
                                             });
-                                        })"
-                                        class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                                        title="Sil">
+                                        })" class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                    title="Sil">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
+                                        </path>
                                     </svg>
                                 </button>
                             </div>
@@ -248,7 +244,8 @@
 
         <!-- Pagination -->
         {% if page_obj.paginator.num_pages > 1 %}
-        <div class="flex flex-col md:flex-row items-center justify-between gap-3 px-4 py-4 border-t border-gray-100 text-sm">
+        <div
+            class="flex flex-col md:flex-row items-center justify-between gap-3 px-4 py-4 border-t border-gray-100 text-sm">
             <p class="text-gray-500">
                 {{ page_obj.paginator.count }} kayıttan
                 <span class="font-semibold text-gray-900">
@@ -259,7 +256,7 @@
             <div class="flex items-center gap-2">
                 {% if page_obj.has_previous %}
                 <a href="?page={{ page_obj.previous_page_number }}&sort={{ sort }}&dir={{ direction }}{{ query_string }}"
-                   class="px-3 py-1.5 rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-100">Önceki</a>
+                    class="px-3 py-1.5 rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-100">Önceki</a>
                 {% else %}
                 <span class="px-3 py-1.5 rounded-xl border border-gray-100 text-gray-300">Önceki</span>
                 {% endif %}
@@ -270,7 +267,7 @@
 
                 {% if page_obj.has_next %}
                 <a href="?page={{ page_obj.next_page_number }}&sort={{ sort }}&dir={{ direction }}{{ query_string }}"
-                   class="px-3 py-1.5 rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-100">Sonraki</a>
+                    class="px-3 py-1.5 rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-100">Sonraki</a>
                 {% else %}
                 <span class="px-3 py-1.5 rounded-xl border border-gray-100 text-gray-300">Sonraki</span>
                 {% endif %}

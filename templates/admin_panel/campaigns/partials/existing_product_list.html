@@ -1,0 +1,37 @@
+<div id="existing-product-list" class="space-y-3">
+    {% for cp in campaign_products %}
+    <div class="flex items-center gap-4 p-4 border border-gray-200 rounded-lg">
+        {% if cp.product.images.first %}
+        <img src="{{ cp.product.images.first.image.url }}" class="w-16 h-16 object-cover rounded-lg">
+        {% else %}
+        <div class="w-16 h-16 bg-gray-100 rounded-lg"></div>
+        {% endif %}
+        <div class="flex-1 min-w-0">
+            <p class="font-semibold text-gray-900 text-sm">{{ cp.product.name }}</p>
+            <p class="text-xs text-gray-500">SKU: {{ cp.product.sku }}</p>
+            <div class="flex items-center gap-2 mt-1">
+                <span class="text-xs text-gray-500">Sıra:</span>
+                <input type="number" value="{{ cp.sort_order }}" min="0" name="sort_order"
+                    hx-post="{% url 'admin_campaign_product_reorder' cp.id %}" hx-trigger="change delay:500ms"
+                    hx-swap="none" class="w-16 px-2 py-1 text-xs border border-gray-300 rounded">
+            </div>
+        </div>
+        <button hx-post="{% url 'admin_campaign_product_remove' cp.id %}"
+            hx-confirm="Bu ürünü kampanyadan kaldırmak istediğinize emin misiniz?" hx-target="#existing-product-list"
+            hx-swap="outerHTML" class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+        </button>
+    </div>
+    {% empty %}
+    <div class="text-center py-12 text-gray-400">
+        <svg class="w-12 h-12 mx-auto mb-3 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4">
+            </path>
+        </svg>
+        <p>Bu kampanyada henüz ürün yok</p>
+    </div>
+    {% endfor %}
+</div>

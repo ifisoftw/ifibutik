@@ -1,37 +1,42 @@
 <!DOCTYPE html>
 <html lang="tr">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Admin Panel{% endblock %} - İFİ Butik</title>
-    
+
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    
+
     <!-- HTMX -->
     <script src="https://unpkg.com/htmx.org@1.9.10"></script>
-    
+
     <!-- Alpine.js -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
-    
+
     <!-- ApexCharts -->
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
-    
+
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+
     <style>
-        [x-cloak] { display: none !important; }
-        
+        [x-cloak] {
+            display: none !important;
+        }
+
         /* Base Background */
         body {
             font-family: 'Inter', sans-serif;
-            background: #F9FAFB; /* bg-gray-50 */
+            background: #F9FAFB;
+            /* bg-gray-50 */
             position: relative;
         }
-        
+
         /* Animated Gradient Background Overlay */
         .animated-gradient-bg {
             position: fixed;
@@ -43,13 +48,21 @@
             pointer-events: none;
             z-index: 0;
         }
-        
+
         @keyframes gradient {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
+            0% {
+                background-position: 0% 50%;
+            }
+
+            50% {
+                background-position: 100% 50%;
+            }
+
+            100% {
+                background-position: 0% 50%;
+            }
         }
-        
+
         /* Dekoratif Blur Circles */
         .blur-circle-1 {
             position: fixed;
@@ -65,7 +78,7 @@
             animation: float 6s ease-in-out infinite;
             z-index: 0;
         }
-        
+
         .blur-circle-2 {
             position: fixed;
             bottom: 5rem;
@@ -81,18 +94,27 @@
             animation-delay: 1s;
             z-index: 0;
         }
-        
+
         @keyframes float {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-20px); }
+
+            0%,
+            100% {
+                transform: translateY(0px);
+            }
+
+            50% {
+                transform: translateY(-20px);
+            }
         }
-        
+
         /* Z-index for content */
-        aside, main, header {
+        aside,
+        main,
+        header {
             position: relative;
             z-index: 10;
         }
-        
+
         /* Glassmorphism - minimal, only for header/floating elements */
         .glass-card {
             background: rgba(255, 255, 255, 0.98);
@@ -101,40 +123,40 @@
             box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
             border: 1px solid rgba(229, 231, 235, 0.8);
         }
-        
+
         /* Scrollbar Styling */
         ::-webkit-scrollbar {
             width: 8px;
             height: 8px;
         }
-        
+
         ::-webkit-scrollbar-track {
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(10px);
         }
-        
+
         ::-webkit-scrollbar-thumb {
             background: rgba(0, 0, 0, 0.3);
             border-radius: 4px;
             backdrop-filter: blur(10px);
         }
-        
+
         ::-webkit-scrollbar-thumb:hover {
             background: rgba(0, 0, 0, 0.5);
         }
-        
+
         /* Subtle animations - performance optimized */
         @media (prefers-reduced-motion: no-preference) {
             .hover-lift {
                 transition: transform 0.2s ease, box-shadow 0.2s ease;
             }
-            
+
             .hover-lift:hover {
                 transform: translateY(-1px);
             }
         }
     </style>
-    
+
     <script>
         tailwind.config = {
             theme: {
@@ -150,9 +172,9 @@
                 }
             }
         }
-        
+
         // HTMX Global Config
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             // CSRF Token for HTMX
             document.body.addEventListener('htmx:configRequest', (event) => {
                 const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]')?.value;
@@ -160,16 +182,16 @@
                     event.detail.headers['X-CSRFToken'] = csrftoken;
                 }
             });
-            
+
             // Loading indicator
             document.body.addEventListener('htmx:beforeRequest', () => {
                 Alpine.store('loading', true);
             });
-            
+
             document.body.addEventListener('htmx:afterRequest', () => {
                 Alpine.store('loading', false);
             });
-            
+
             // Auto-focus first input in modals
             document.body.addEventListener('htmx:afterSwap', (event) => {
                 if (event.detail.target.id === 'modal-container') {
@@ -181,111 +203,119 @@
             });
         });
     </script>
-    
+
     {% block extra_head %}{% endblock %}
 </head>
-<body class="text-gray-900" 
-      x-data="{ mobileMenuOpen: false }">
-    
+
+<body class="text-gray-900" x-data="{ mobileMenuOpen: false }">
+
     <!-- Animated Background -->
     <div class="animated-gradient-bg"></div>
-    
+
     <!-- Dekoratif Blur Circles -->
     <div class="blur-circle-1"></div>
     <div class="blur-circle-2"></div>
-    
+
     <!-- Main Content Area -->
     <main class="transition-all duration-300 min-h-screen pb-20 lg:pb-0">
-        
+
         <!-- Top Header -->
         <header class="glass-card border-b border-white/20 sticky top-0 z-40 shadow-lg">
             <div class="px-4 py-3 md:px-6 md:py-4">
                 <div class="flex items-center justify-between">
-                    
+
                     <!-- Left: Brand, Title & Breadcrumb -->
                     <div class="flex items-center gap-3">
                         <!-- Mobile menu button -->
                         <button @click="mobileMenuOpen = !mobileMenuOpen"
-                                class="md:hidden p-2 rounded-full bg-white shadow-sm text-gray-700">
+                            class="md:hidden p-2 rounded-full bg-white shadow-sm text-gray-700">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M4 6h16M4 12h16M4 18h16"></path>
                             </svg>
                         </button>
-                        
+
                         <div class="flex flex-col">
                             <p class="text-[11px] font-semibold text-gray-400 tracking-wide uppercase">İFİ BUTİK</p>
                             <h1 class="text-lg md:text-2xl font-extrabold text-gray-900 leading-tight">
                                 {% block page_title %}Dashboard{% endblock %}
                             </h1>
                         </div>
-                        
+
                         <div class="hidden md:block ml-4">
                             {% block breadcrumb %}{% endblock %}
                         </div>
                     </div>
-                    
+
                     <!-- Right: Actions & User -->
                     <div class="flex items-center gap-3 md:gap-4">
-                        
+
                         <!-- Search Bar (desktop only) -->
                         <div class="hidden md:block">
                             <div class="relative">
-                                <input type="text" 
-                                       id="global-search"
-                                       placeholder="Hızlı arama... (Ctrl+K)" 
-                                       class="w-64 pl-10 pr-4 py-2 glass border-0 rounded-xl focus:ring-2 focus:ring-primary transition-all text-sm">
+                                <input type="text" id="global-search" placeholder="Hızlı arama... (Ctrl+K)"
+                                    class="w-64 pl-10 pr-4 py-2 glass border-0 rounded-xl focus:ring-2 focus:ring-primary transition-all text-sm">
                                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                    <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor"
+                                        viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                                     </svg>
                                 </div>
                             </div>
                         </div>
-                        
+
                         <!-- Mağazaya Git (desktop only) -->
-                        <a href="{% url 'home' %}" 
-                           target="_blank"
-                           class="hidden md:flex items-center gap-2 px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors">
+                        <a href="{% url 'home' %}" target="_blank"
+                            class="hidden md:flex items-center gap-2 px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6">
+                                </path>
                             </svg>
                             <span class="text-sm font-medium">Mağazaya Git</span>
                         </a>
-                        
+
                         <!-- User Dropdown -->
                         <div x-data="{ userMenuOpen: false }" class="relative">
-                            <button @click="userMenuOpen = !userMenuOpen" 
-                                    class="flex items-center gap-2 px-2 md:px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors">
+                            <button @click="userMenuOpen = !userMenuOpen"
+                                class="flex items-center gap-2 px-2 md:px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors">
                                 <div class="w-8 h-8 bg-gradient-to-br from-brand-pink to-brand-purple rounded-full flex items-center justify-center">
-                                    <span class="text-white font-bold text-sm">{{ request.user.first_name.0|default:request.user.username.0|upper }}</span>
+                                    <span class="text-white font-bold text-sm">
+                                        {{ request.user.first_name.0|default:request.user.username.0|upper }}
+                                    </span>
                                 </div>
                                 <div class="hidden md:block text-left">
-                                    <p class="text-sm font-semibold text-gray-900">{{ request.user.get_full_name|default:request.user.username }}</p>
-                                    <p class="text-xs text-gray-500">{{ request.user.admin_profile.role.get_name_display }}</p>
+                                    <p class="text-sm font-semibold text-gray-900">
+                                        {{ request.user.get_full_name|default:request.user.username }}
+                                    </p>
+                                    <p class="text-xs text-gray-500">
+                                        {{ request.user.admin_profile.role.get_name_display }}
+                                    </p>
                                 </div>
                                 <svg class="hidden md:block w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                                 </svg>
                             </button>
-                            
+
                             <!-- Dropdown Menu -->
-                            <div x-show="userMenuOpen" 
-                                 @click.away="userMenuOpen = false"
-                                 x-cloak
-                                 x-transition:enter="transition ease-out duration-100"
-                                 x-transition:enter-start="transform opacity-0 scale-95"
-                                 x-transition:enter-end="transform opacity-100 scale-100"
-                                 class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2">
-                                <a href="{% url 'admin_logout' %}" 
-                                   class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors">
+                            <div x-show="userMenuOpen" @click.away="userMenuOpen = false" x-cloak
+                                x-transition:enter="transition ease-out duration-100"
+                                x-transition:enter-start="transform opacity-0 scale-95"
+                                x-transition:enter-end="transform opacity-100 scale-100"
+                                class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2">
+                                <a href="{% url 'admin_logout' %}"
+                                    class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1">
+                                        </path>
                                     </svg>
                                     Çıkış Yap
                                 </a>
                             </div>
                         </div>
-                        
+
                     </div>
                 </div>
 
@@ -294,126 +324,106 @@
                     <!-- Desktop Navigation -->
                     <nav class="hidden md:flex items-center gap-2 text-sm font-medium">
                         <a href="{% url 'admin_dashboard' %}"
-                           class="flex items-center gap-2 px-3 py-2 rounded-lg transition-colors {% if request.resolver_match.url_name == 'admin_dashboard' %}bg-primary text-white shadow{% else %}text-gray-600 hover:bg-gray-100{% endif %}">
+                            class="flex items-center gap-2 px-3 py-2 rounded-lg transition-colors {% if request.resolver_match.url_name == 'admin_dashboard' %}bg-primary text-white shadow{% else %}text-gray-600 hover:bg-gray-100{% endif %}">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6">
+                                </path>
                             </svg>
                             <span>Dashboard</span>
                         </a>
                         <a href="{% url 'admin_reports' %}"
-                           class="flex items-center gap-2 px-3 py-2 rounded-lg transition-colors {% if request.resolver_match.url_name == 'admin_reports' %}bg-primary text-white shadow{% else %}text-gray-600 hover:bg-gray-100{% endif %}">
+                            class="flex items-center gap-2 px-3 py-2 rounded-lg transition-colors {% if request.resolver_match.url_name == 'admin_reports' %}bg-primary text-white shadow{% else %}text-gray-600 hover:bg-gray-100{% endif %}">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z">
+                                </path>
                             </svg>
                             <span>Raporlar</span>
                         </a>
                         <a href="{% url 'admin_orders' %}"
-                           class="flex items-center gap-2 px-3 py-2 rounded-lg transition-colors {% if 'orders' in request.path %}bg-primary text-white shadow{% else %}text-gray-600 hover:bg-gray-100{% endif %}">
+                            class="flex items-center gap-2 px-3 py-2 rounded-lg transition-colors {% if 'orders' in request.path %}bg-primary text-white shadow{% else %}text-gray-600 hover:bg-gray-100{% endif %}">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01">
+                                </path>
                             </svg>
                             <span>Siparişler</span>
                         </a>
                         <a href="{% url 'admin_campaigns' %}"
-                           class="flex items-center gap-2 px-3 py-2 rounded-lg transition-colors {% if 'campaigns' in request.path %}bg-primary text-white shadow{% else %}text-gray-600 hover:bg-gray-100{% endif %}">
+                            class="flex items-center gap-2 px-3 py-2 rounded-lg transition-colors {% if 'campaigns' in request.path %}bg-primary text-white shadow{% else %}text-gray-600 hover:bg-gray-100{% endif %}">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z">
+                                </path>
                             </svg>
                             <span>Kampanyalar</span>
                         </a>
                         <a href="{% url 'admin_products' %}"
-                           class="flex items-center gap-2 px-3 py-2 rounded-lg transition-colors {% if 'products' in request.path %}bg-primary text-white shadow{% else %}text-gray-600 hover:bg-gray-100{% endif %}">
+                            class="flex items-center gap-2 px-3 py-2 rounded-lg transition-colors {% if 'products' in request.path %}bg-primary text-white shadow{% else %}text-gray-600 hover:bg-gray-100{% endif %}">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
                             </svg>
                             <span>Ürünler</span>
                         </a>
                     </nav>
 
                     <!-- Mobile Navigation -->
-                    <nav class="md:hidden pt-3 border-t border-gray-100 space-y-1"
-                         x-show="mobileMenuOpen"
-                         x-transition>
+                    <nav class="md:hidden pt-3 border-t border-gray-100 space-y-1" x-show="mobileMenuOpen" x-transition>
                         <a href="{% url 'admin_dashboard' %}"
-                           class="flex items-center gap-2 px-3 py-2 rounded-lg transition-colors {% if request.resolver_match.url_name == 'admin_dashboard' %}bg-primary text-white shadow{% else %}text-gray-700 hover:bg-gray-100{% endif %}">
+                            class="flex items-center gap-2 px-3 py-2 rounded-lg transition-colors {% if request.resolver_match.url_name == 'admin_dashboard' %}bg-primary text-white shadow{% else %}text-gray-700 hover:bg-gray-100{% endif %}">
                             <span>Dashboard</span>
                         </a>
                         <a href="{% url 'admin_reports' %}"
-                           class="flex items-center gap-2 px-3 py-2 rounded-lg transition-colors {% if request.resolver_match.url_name == 'admin_reports' %}bg-primary text-white shadow{% else %}text-gray-700 hover:bg-gray-100{% endif %}">
+                            class="flex items-center gap-2 px-3 py-2 rounded-lg transition-colors {% if request.resolver_match.url_name == 'admin_reports' %}bg-primary text-white shadow{% else %}text-gray-700 hover:bg-gray-100{% endif %}">
                             <span>Raporlar</span>
                         </a>
                         <a href="{% url 'admin_orders' %}"
-                           class="flex items-center gap-2 px-3 py-2 rounded-lg transition-colors {% if 'orders' in request.path %}bg-primary text-white shadow{% else %}text-gray-700 hover:bg-gray-100{% endif %}">
+                            class="flex items-center gap-2 px-3 py-2 rounded-lg transition-colors {% if 'orders' in request.path %}bg-primary text-white shadow{% else %}text-gray-700 hover:bg-gray-100{% endif %}">
                             <span>Siparişler</span>
                         </a>
                         <a href="{% url 'admin_campaigns' %}"
-                           class="flex items-center gap-2 px-3 py-2 rounded-lg transition-colors {% if 'campaigns' in request.path %}bg-primary text-white shadow{% else %}text-gray-700 hover:bg-gray-100{% endif %}">
+                            class="flex items-center gap-2 px-3 py-2 rounded-lg transition-colors {% if 'campaigns' in request.path %}bg-primary text-white shadow{% else %}text-gray-700 hover:bg-gray-100{% endif %}">
                             <span>Kampanyalar</span>
                         </a>
                         <a href="{% url 'admin_products' %}"
-                           class="flex items-center gap-2 px-3 py-2 rounded-lg transition-colors {% if 'products' in request.path %}bg-primary text-white shadow{% else %}text-gray-700 hover:bg-gray-100{% endif %}">
+                            class="flex items-center gap-2 px-3 py-2 rounded-lg transition-colors {% if 'products' in request.path %}bg-primary text-white shadow{% else %}text-gray-700 hover:bg-gray-100{% endif %}">
                             <span>Ürünler</span>
                         </a>
                     </nav>
                 </div>
             </div>
         </header>
-        
+
         <!-- Content -->
         <div class="p-6">
-            
-            <!-- Messages -->
-            {% if messages %}
-            <div class="mb-6 space-y-3">
+
+            <!-- Messages (Handled by Toast) -->
+            <div id="django-messages" class="hidden">
+                {% if messages %}
                 {% for message in messages %}
-                <div x-data="{ show: true }" 
-                     x-show="show"
-                     x-transition
-                     class="flex items-start gap-3 p-4 rounded-lg border
-                     {% if message.tags == 'error' %}bg-red-50 border-red-200 text-red-800{% endif %}
-                     {% if message.tags == 'success' %}bg-green-50 border-green-200 text-green-800{% endif %}
-                     {% if message.tags == 'warning' %}bg-yellow-50 border-yellow-200 text-yellow-800{% endif %}
-                     {% if message.tags == 'info' %}bg-blue-50 border-blue-200 text-blue-800{% endif %}">
-                    <svg class="w-5 h-5 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                        {% if message.tags == 'error' %}
-                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
-                        {% elif message.tags == 'success' %}
-                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-                        {% else %}
-                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
-                        {% endif %}
-                    </svg>
-                    <span class="text-sm font-medium flex-1">{{ message }}</span>
-                    <button @click="show = false" class="text-gray-400 hover:text-gray-600">
-                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
-                        </svg>
-                    </button>
-                </div>
+                <div data-message="{{ message }}" data-level="{{ message.tags }}"></div>
                 {% endfor %}
+                {% endif %}
             </div>
-            {% endif %}
-            
+
             {% block content %}{% endblock %}
         </div>
-        
+
     </main>
-    
+
     <!-- Modal Container (for HTMX) -->
     <div id="modal-container"></div>
-    
+
     <!-- Toast Notification Container -->
     <div x-data class="fixed top-20 right-4 z-50 space-y-2 max-w-sm">
         <template x-for="toast in $store.toast.items" :key="toast.id">
-            <div x-show="true"
-                 x-transition:enter="transition ease-out duration-300"
-                 x-transition:enter-start="opacity-0 translate-x-6"
-                 x-transition:enter-end="opacity-100 translate-x-0"
-                 x-transition:leave="transition ease-in duration-200"
-                 x-transition:leave-start="opacity-100 translate-x-0"
-                 x-transition:leave-end="opacity-0 translate-x-6"
-                 class="bg-white rounded-xl shadow-xl border-l-4 p-4"
-                 :class="{
+            <div x-show="true" x-transition:enter="transition ease-out duration-300"
+                x-transition:enter-start="opacity-0 translate-x-6" x-transition:enter-end="opacity-100 translate-x-0"
+                x-transition:leave="transition ease-in duration-200"
+                x-transition:leave-start="opacity-100 translate-x-0" x-transition:leave-end="opacity-0 translate-x-6"
+                class="bg-white rounded-xl shadow-xl border-l-4 p-4" :class="{
                      'border-emerald-500 bg-emerald-50/50': toast.type === 'success',
                      'border-rose-500 bg-rose-50/50': toast.type === 'error',
                      'border-blue-500 bg-blue-50/50': toast.type === 'info',
@@ -421,125 +431,127 @@
                  }">
                 <div class="flex items-start gap-3">
                     <!-- Icon -->
-                    <div class="flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center"
-                         :class="{
+                    <div class="flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center" :class="{
                              'bg-emerald-100': toast.type === 'success',
                              'bg-rose-100': toast.type === 'error',
                              'bg-blue-100': toast.type === 'info',
                              'bg-amber-100': toast.type === 'warning'
                          }">
-                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"
-                             :class="{
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20" :class="{
                                  'text-emerald-600': toast.type === 'success',
                                  'text-rose-600': toast.type === 'error',
                                  'text-blue-600': toast.type === 'info',
                                  'text-amber-600': toast.type === 'warning'
                              }">
-                            <template x-if="toast.type === 'success'">
-                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-                            </template>
-                            <template x-if="toast.type === 'error'">
-                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
-                            </template>
-                            <template x-if="toast.type === 'warning' || toast.type === 'info'">
-                                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
-                            </template>
+                            <path x-show="toast.type === 'success'" fill-rule="evenodd"
+                                d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                                clip-rule="evenodd" />
+                            <path x-show="toast.type === 'error'" fill-rule="evenodd"
+                                d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                                clip-rule="evenodd" />
+                            <path x-show="toast.type === 'warning' || toast.type === 'info'" fill-rule="evenodd"
+                                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                                clip-rule="evenodd" />
                         </svg>
                     </div>
                     <!-- Message -->
                     <p class="text-sm font-medium text-gray-900 flex-1" x-text="toast.message"></p>
                     <!-- Close -->
-                    <button @click="$store.toast.remove(toast.id)" 
-                            class="text-gray-400 hover:text-gray-600 transition-colors">
+                    <button @click="$store.toast.remove(toast.id)"
+                        class="text-gray-400 hover:text-gray-600 transition-colors">
                         <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                            <path fill-rule="evenodd"
+                                d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                                clip-rule="evenodd" />
                         </svg>
                     </button>
                 </div>
             </div>
         </template>
     </div>
-    
+
     <!-- Global Confirm Dialog -->
     {% include 'admin_panel/components/confirm_dialog.html' %}
-    
+
     <!-- Alpine.js Global Stores & Components -->
     <script>
         document.addEventListener('alpine:init', () => {
             // Toast Store - Global notification system
             Alpine.store('toast', {
                 items: [],
-                
-                add(message, type = 'success', duration = 3000) {
+
+                add(message, type = 'success', duration = 5000) {
                     const id = Date.now() + Math.random();
                     this.items.push({ id, message, type });
                     setTimeout(() => this.remove(id), duration);
                 },
-                
+
                 remove(id) {
                     this.items = this.items.filter(item => item.id !== id);
                 },
-                
+
                 success(message) { this.add(message, 'success'); },
                 error(message) { this.add(message, 'error', 5000); },
                 warning(message) { this.add(message, 'warning', 4000); },
                 info(message) { this.add(message, 'info'); }
             });
-            
+
             // Loading Store - Global loading indicator
             Alpine.store('loading', false);
-            
+
             // Confirm Dialog Store - Global confirmation dialogs
             Alpine.store('confirm', {
                 show: false,
                 message: '',
                 callback: null,
-                
+
                 ask(message, callback) {
                     this.message = message;
                     this.callback = callback;
                     this.show = true;
                 },
-                
+
                 yes() {
                     if (this.callback && typeof this.callback === 'function') {
                         this.callback();
                     }
                     this.cancel();
                 },
-                
+
                 cancel() {
                     this.show = false;
                     this.message = '';
                     this.callback = null;
                 }
             });
-            
+
             // HTMX event listeners for toast notifications
             document.body.addEventListener('showToast', (event) => {
                 const { message, type } = event.detail;
                 Alpine.store('toast').add(message, type || 'success');
             });
-            
+
             // Auto-toast on HTMX success events
-            document.body.addEventListener('campaignListChanged', () => {
-                Alpine.store('toast').success('Kampanya güncellendi');
-                setTimeout(() => window.location.reload(), 800);
-            });
-            
-            document.body.addEventListener('productListChanged', () => {
-                Alpine.store('toast').success('Ürün güncellendi');
-                setTimeout(() => window.location.reload(), 800);
-            });
-            
-            document.body.addEventListener('orderStatusUpdated', () => {
-                Alpine.store('toast').success('Sipariş durumu güncellendi');
-                setTimeout(() => window.location.reload(), 800);
+            // Process Django Messages
+            const djangoMessages = document.querySelectorAll('#django-messages div');
+            djangoMessages.forEach(msg => {
+                const message = msg.dataset.message;
+                const level = msg.dataset.level;
+                // Map Django tags to Toast types
+                let type = 'info';
+                if (level.includes('success')) type = 'success';
+                else if (level.includes('error')) type = 'error';
+                else if (level.includes('warning')) type = 'warning';
+
+                // Add with slight delay for animation
+                setTimeout(() => {
+                    Alpine.store('toast').add(message, type);
+                }, 100);
             });
         });
     </script>
-    
+
     {% block extra_scripts %}{% endblock %}
 </body>
-</html>
 
+</html>

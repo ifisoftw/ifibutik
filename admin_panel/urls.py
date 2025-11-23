@@ -22,6 +22,10 @@ urlpatterns = [
     path('campaigns/<int:pk>/delete/', campaign_views.campaign_delete, name='admin_campaign_delete'),
     path('campaigns/<int:pk>/toggle/', campaign_views.campaign_toggle, name='admin_campaign_toggle'),
     path('campaigns/bulk-action/', campaign_views.campaign_bulk_action, name='admin_campaign_bulk_action'),
+    path('campaigns/products/<int:pk>/remove/', campaign_views.campaign_product_remove, name='admin_campaign_product_remove'),
+    path('campaigns/products/<int:pk>/reorder/', campaign_views.campaign_product_reorder, name='admin_campaign_product_reorder'),
+    path('campaigns/<int:pk>/products/search/', campaign_views.campaign_product_search, name='admin_campaign_product_search'),
+    path('campaigns/<int:pk>/products/add/', campaign_views.campaign_product_add, name='admin_campaign_product_add'),
     
     # Products
     path('products/', product_views.product_list, name='admin_products'),
