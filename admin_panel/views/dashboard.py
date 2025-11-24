@@ -21,13 +21,13 @@ def dashboard(request):
     # Bugün Ciro
     today_revenue = Order.objects.filter(
         created_at__date=today,
-        status__in=['processing', 'shipped', 'delivered']
+        status__in=['new','processing', 'shipped', 'delivered']
     ).aggregate(total=Sum('total_amount'))['total'] or 0
     
     # Dün Ciro
     yesterday_revenue = Order.objects.filter(
         created_at__date=yesterday,
-        status__in=['processing', 'shipped', 'delivered']
+        status__in=['new','processing', 'shipped', 'delivered']
     ).aggregate(total=Sum('total_amount'))['total'] or 0
     
     # Bugün Ciro değişim yüzdesi

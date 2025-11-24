@@ -2,6 +2,8 @@ from django.test import TestCase, Client
 from django.urls import reverse
 from django.contrib.auth.models import User
 from .models import AdminRole, AdminPermission, AdminUser
+from django.core.cache import cache
+from gumbuz_shop.middleware import get_active_user_count
 
 class AdminLoginTest(TestCase):
     def setUp(self):
@@ -72,3 +74,59 @@ class AdminDashboardTest(TestCase):
         url = reverse('admin_dashboard')
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
+
+
+
+class ActiveUserTrackingTest(TestCase):
+    def setUp(self):
+        self.client = Client()
+        # Clear cache before each test
+        cache.delete('active_users_dict')
+
+    def test_active_user_count_increases(self):
+        """Test that a request increases the active user count"""
+        # Initial count should be 0
+        self.assertEqual(get_active_user_count(), 0)
+        
+        # Make a request (this should trigger middleware)
+        # We need to ensure session is created/accessed
+        session = self.client.session
+        session['test'] = 'true'
+        session.save()
+        
+        self.client.get(reverse('admin_login'))
+        
+        # Count should be 1
+        self.assertEqual(get_active_user_count(), 1)
+
+    def test_active_user_count_multiple_users(self):
+        """Test that multiple distinct sessions are counted separately"""
+        # User 1
+        client1 = Client()
+        session1 = client1.session
+        session1['user'] = '1'
+        session1.save()
+        client1.get(reverse('admin_login'))
+        
+        # User 2
+        client2 = Client()
+        session2 = client2.session
+        session2['user'] = '2'
+        session2.save()
+        client2.get(reverse('admin_login'))
+        
+        self.assertEqual(get_active_user_count(), 2)
+
+    def test_context_processor(self):
+        """Test that the context processor adds the count to the template context"""
+        # Make a request
+        session = self.client.session
+        session['test'] = 'true'
+        session.save()
+        
+        response = self.client.get(reverse('admin_login'))
+        
+        # Check context
+        self.assertIn('active_user_count', response.context)
+        self.assertEqual(response.context['active_user_count'], 1)
+

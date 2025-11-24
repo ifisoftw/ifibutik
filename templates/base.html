@@ -3,7 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>İFİ Butik</title>
+    <title>{% block title %}İFİ Butik{% endblock %}</title>
+    {% block meta %}
+    <meta name="description" content="İFİ Butik - En trend tesettür giyim ürünleri.">
+    {% endblock %}
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>

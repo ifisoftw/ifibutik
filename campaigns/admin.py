@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Campaign, CampaignProduct, SizeOption
+from .models import Campaign, SizeOption, CampaignProduct, FAQ
 
 class CampaignProductInline(admin.TabularInline):
     model = CampaignProduct
@@ -8,9 +8,17 @@ class CampaignProductInline(admin.TabularInline):
 
 @admin.register(SizeOption)
 class SizeOptionAdmin(admin.ModelAdmin):
-    list_display = ('name', 'slug', 'description', 'is_active')
+    list_display = ['name', 'slug', 'is_active']
     prepopulated_fields = {'slug': ('name',)}
-    search_fields = ('name', 'slug')
+    list_filter = ['is_active']
+    search_fields = ['name', 'slug']
+
+@admin.register(FAQ)
+class FAQAdmin(admin.ModelAdmin):
+    list_display = ['question', 'sort_order', 'is_active']
+    list_editable = ['sort_order', 'is_active']
+    list_filter = ['is_active']
+    search_fields = ['question', 'answer']
 
 @admin.register(Campaign)
 class CampaignAdmin(admin.ModelAdmin):

@@ -66,6 +66,18 @@
                             <dd class="text-sm font-semibold text-gray-900">{{ order.id }}</dd>
                         </div>
                         <div>
+                            <dt class="text-xs font-medium text-gray-600 mb-1">Sipariş Takip No</dt>
+                            <dd class="text-sm font-semibold text-gray-900">
+                                {% if order.tracking_number %}
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                    {{ order.tracking_number }}
+                                </span>
+                                {% else %}
+                                <span class="text-gray-400">-</span>
+                                {% endif %}
+                            </dd>
+                        </div>
+                        <div>
                             <dt class="text-xs font-medium text-gray-600 mb-1">Sipariş Tarihi</dt>
                             <dd class="text-sm font-semibold text-gray-900">{{ order.created_at|date:"d.m.Y H:i" }}</dd>
                         </div>

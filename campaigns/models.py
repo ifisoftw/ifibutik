@@ -49,3 +49,18 @@ class CampaignProduct(models.Model):
         ordering = ['sort_order']
         verbose_name = "Kampanya Ürünü"
         verbose_name_plural = "Kampanya Ürünleri"
+
+class FAQ(models.Model):
+    question = models.CharField(max_length=255, verbose_name="Soru")
+    answer = models.TextField(verbose_name="Cevap")
+    sort_order = models.PositiveIntegerField(default=0, verbose_name="Sıralama")
+    is_active = models.BooleanField(default=True, verbose_name="Aktif mi?")
+    
+    class Meta:
+        ordering = ['sort_order']
+        verbose_name = "SSS"
+        verbose_name_plural = "SSS"
+    
+    def __str__(self):
+        return self.question
+

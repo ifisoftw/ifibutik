@@ -1,6 +1,30 @@
 {% extends 'base.html' %}
 {% load static %}
 
+{% block title %}{{ campaign.title }} | İFİ Butik{% endblock %}
+
+{% block meta %}
+<meta name="description" content="{{ campaign.description|truncatechars:160 }}">
+
+<!-- Open Graph / Facebook -->
+<meta property="og:type" content="website">
+<meta property="og:url" content="{{ request.build_absolute_uri }}">
+<meta property="og:title" content="{{ campaign.title }} | İFİ Butik">
+<meta property="og:description" content="{{ campaign.description|truncatechars:160 }}">
+{% if campaign.banner_image %}
+<meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{{ campaign.banner_image.url }}">
+{% endif %}
+
+<!-- Twitter -->
+<meta property="twitter:card" content="summary_large_image">
+<meta property="twitter:url" content="{{ request.build_absolute_uri }}">
+<meta property="twitter:title" content="{{ campaign.title }} | İFİ Butik">
+<meta property="twitter:description" content="{{ campaign.description|truncatechars:160 }}">
+{% if campaign.banner_image %}
+<meta property="twitter:image" content="{{ request.scheme }}://{{ request.get_host }}{{ campaign.banner_image.url }}">
+{% endif %}
+{% endblock %}
+
 {% block content %}
 <div x-data="campaignStore()" class="pb-24 relative">
     
@@ -241,8 +265,16 @@
                         {% endif %}
                         
                         <!-- Hover Overlay -->
-                        <div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-3">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-3 pointer-events-none">
                             <p class="text-white text-xs font-medium">Hemen İncele</p>
+                        </div>
+
+                        <!-- Zoom Button (Center) -->
+                        <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-30 pointer-events-none">
+                            <button @click.stop="openLightbox([{% for img in cp.product.images.all %}'{{ img.image.url }}',{% endfor %}])" 
+                                    class="bg-white/20 backdrop-blur-md p-3 rounded-full text-white hover:bg-white hover:text-brand-pink transition-all duration-300 transform hover:scale-110 shadow-lg pointer-events-auto">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"></path></svg>
+                            </button>
                         </div>
                     </div>
                     
@@ -273,9 +305,9 @@
                         <div class="h-4 overflow-hidden relative mb-2"
                              x-data="{ 
                                  texts: [
-                                     '{{ forloop.counter|add:240 }} kişinin sepetinde, kaçırma!',
-                                     '24 saatte {{ forloop.counter|add:1650 }} kişi inceledi!',
-                                     'Son 1 saatte {{ forloop.counter|add:18 }} adet satıldı!'
+                                     '{{ forloop.counter|add:1240 }} kişinin sepetinde, kaçırma!',
+                                     '24 saatte {{ forloop.counter|add:3650 }} kişi inceledi!',
+                                     'Son 1 saatte {{ forloop.counter|add:990 }} adet satıldı!'
                                  ],
                                  currentText: 0
                              }"
@@ -298,10 +330,8 @@
                         </div>
 
                         <!-- Özellikler -->
-                        <div class="text-[9px] text-gray-400 mb-3 leading-tight border-t border-gray-100 pt-2 space-y-1">
-                            <div class="flex justify-between"><span>Tunik Boy:</span> <span class="text-gray-600 font-medium">{{ forloop.counter|add:70 }} CM</span></div>
-                            <div class="flex justify-between"><span>Pantolon:</span> <span class="text-gray-600 font-medium">{{ forloop.counter|add:95 }} CM</span></div>
-                            <div class="flex justify-between"><span>Kumaş:</span> <span class="text-gray-600 font-medium">İki İplik</span></div>
+                        <div class="text-[11px] text-slate-700 font-medium mb-3 leading-relaxed border-t border-gray-100 pt-1">
+                            {{ cp.product.description|linebreaksbr }}
                         </div>
                         
                         <button 
@@ -595,37 +625,64 @@
             </div>
             
             <div class="space-y-3" x-data="{ active: null }">
+                {% for faq in faqs %}
                 <div class="glass-white rounded-2xl overflow-hidden border border-white/20 transition-all hover:shadow-lg">
-                    <button @click="active = active === 1 ? null : 1" class="w-full p-4 text-left flex justify-between items-center group">
-                        <span class="text-sm font-bold text-gray-800 group-hover:text-brand-pink transition-colors">Tekli olarak alabilir miyim?</span>
-                        <svg class="w-4 h-4 transform transition-all text-gray-400 group-hover:text-brand-pink" :class="active === 1 ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    <button @click="active = active === {{ forloop.counter }} ? null : {{ forloop.counter }}" class="w-full p-4 text-left flex justify-between items-center group">
+                        <span class="text-sm font-bold text-gray-800 group-hover:text-brand-pink transition-colors">{{ faq.question }}</span>
+                        <svg class="w-4 h-4 transform transition-all text-gray-400 group-hover:text-brand-pink" :class="active === {{ forloop.counter }} ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                     </button>
-                    <div x-show="active === 1" x-collapse class="px-4 pb-4 text-sm text-gray-600 border-t border-gray-100">
-                        Bu kampanya paket olarak satılmaktadır. En az {{ campaign.min_quantity }} adet seçmelisiniz.
+                    <div x-show="active === {{ forloop.counter }}" x-collapse class="px-4 pb-4 text-sm text-gray-600 border-t border-gray-100">
+                        {{ faq.answer|linebreaksbr }}
                     </div>
                 </div>
-                
-                <div class="glass-white rounded-2xl overflow-hidden border border-white/20 transition-all hover:shadow-lg">
-                    <button @click="active = active === 2 ? null : 2" class="w-full p-4 text-left flex justify-between items-center group">
-                        <span class="text-sm font-bold text-gray-800 group-hover:text-brand-pink transition-colors">Siparişim kaç günde gelir?</span>
-                        <svg class="w-4 h-4 transform transition-all text-gray-400 group-hover:text-brand-pink" :class="active === 2 ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                    </button>
-                    <div x-show="active === 2" x-collapse class="px-4 pb-4 text-sm text-gray-600 border-t border-gray-100">
-                        Siparişleriniz 1-3 iş günü içerisinde kargoya teslim edilmektedir.
-                    </div>
-                </div>
+                {% empty %}
+                <p class="text-gray-500 text-sm text-center py-4">Henüz soru eklenmemiş.</p>
+                {% endfor %}
+            </div>
+        </div>
 
-                <div class="glass-white rounded-2xl overflow-hidden border border-white/20 transition-all hover:shadow-lg">
-                    <button @click="active = active === 3 ? null : 3" class="w-full p-4 text-left flex justify-between items-center group">
-                        <span class="text-sm font-bold text-gray-800 group-hover:text-brand-pink transition-colors">İade ve değişim var mı?</span>
-                        <svg class="w-4 h-4 transform transition-all text-gray-400 group-hover:text-brand-pink" :class="active === 3 ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                    </button>
-                    <div x-show="active === 3" x-collapse class="px-4 pb-4 text-sm text-gray-600 border-t border-gray-100">
-                        Evet, 14 gün içinde koşulsuz iade hakkınız vardır. Ürünlerinizi hiç açmadan, etiketi ile birlikte iade edebilirsiniz.
+        <!-- Lightbox Modal -->
+        <template x-teleport="body">
+            <div x-show="lightboxOpen" 
+                 x-transition:enter="transition ease-out duration-300"
+                 x-transition:enter-start="opacity-0"
+                 x-transition:enter-end="opacity-100"
+                 x-transition:leave="transition ease-in duration-200"
+                 x-transition:leave-start="opacity-100"
+                 x-transition:leave-end="opacity-0"
+                 class="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-sm"
+                 x-cloak>
+                
+                <!-- Close Button -->
+                <button @click="closeLightbox()" class="absolute top-4 right-4 text-white/70 hover:text-white z-50 p-2">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+
+                <!-- Navigation Buttons -->
+                <button x-show="lightboxImages.length > 1" @click.stop="prevImage()" class="absolute left-4 text-white/70 hover:text-white z-50 p-2 bg-black/20 rounded-full backdrop-blur-md transition-all hover:bg-black/40">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                </button>
+                
+                <button x-show="lightboxImages.length > 1" @click.stop="nextImage()" class="absolute right-4 text-white/70 hover:text-white z-50 p-2 bg-black/20 rounded-full backdrop-blur-md transition-all hover:bg-black/40">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                </button>
+
+                <!-- Image Container -->
+                <div class="relative w-full h-full flex items-center justify-center p-4" @click.outside="closeLightbox()">
+                    <img :src="lightboxImages[lightboxIndex]" 
+                         class="max-w-full max-h-full object-contain rounded-lg shadow-2xl transform transition-transform duration-300"
+                         x-transition:enter="transition ease-out duration-300"
+                         x-transition:enter-start="opacity-0 scale-90"
+                         x-transition:enter-end="opacity-100 scale-100"
+                         :key="lightboxIndex">
+                    
+                    <!-- Counter -->
+                    <div x-show="lightboxImages.length > 1" class="absolute bottom-8 left-1/2 transform -translate-x-1/2 bg-black/50 text-white px-4 py-2 rounded-full text-sm font-medium backdrop-blur-md">
+                        <span x-text="lightboxIndex + 1"></span> / <span x-text="lightboxImages.length"></span>
                     </div>
                 </div>
             </div>
-        </div>
+        </template>
 
     </div>
 </div>
@@ -648,6 +705,36 @@ function campaignStore() {
         commonSize: "",
         totalSelected: 0,
         showSizeError: false,
+        
+        // Lightbox State
+        lightboxOpen: false,
+        lightboxImages: [],
+        lightboxIndex: 0,
+
+        openLightbox(images) {
+            if (images && images.length > 0) {
+                this.lightboxImages = images;
+                this.lightboxIndex = 0;
+                this.lightboxOpen = true;
+                document.body.style.overflow = 'hidden';
+            }
+        },
+
+        closeLightbox() {
+            this.lightboxOpen = false;
+            setTimeout(() => {
+                this.lightboxImages = [];
+            }, 300);
+            document.body.style.overflow = '';
+        },
+
+        nextImage() {
+            this.lightboxIndex = (this.lightboxIndex + 1) % this.lightboxImages.length;
+        },
+
+        prevImage() {
+            this.lightboxIndex = (this.lightboxIndex - 1 + this.lightboxImages.length) % this.lightboxImages.length;
+        },
         
         isProductSelected(productId) {
             return this.selectedProducts.some(p => p && p.id === productId);

@@ -1,6 +1,6 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.http import HttpResponse
-from .models import Campaign
+from .models import Campaign, FAQ
 from addresses.models import City, District, Neighborhood
 
 def home_view(request):
@@ -16,16 +16,20 @@ def campaign_detail(request, slug):
     all_campaigns = Campaign.objects.filter(is_active=True).order_by('id') # Or any specific ordering
     
     # Fetch products via Through Model to respect ordering
-    products = campaign.campaignproduct_set.select_related('product').order_by('sort_order')
+    products = campaign.campaignproduct_set.select_related('product').prefetch_related('product__images').order_by('sort_order')
     
     # Fetch active cities from database
     cities = City.objects.filter(is_active=True).order_by('name')
+    
+    # Fetch active FAQs
+    faqs = FAQ.objects.filter(is_active=True).order_by('sort_order')
     
     context = {
         'campaign': campaign,
         'all_campaigns': all_campaigns,
         'products': products,
         'cities': cities,
+        'faqs': faqs,
     }
     return render(request, 'campaigns/detail.html', context)
 
