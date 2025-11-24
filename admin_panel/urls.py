@@ -5,6 +5,7 @@ from .views import campaigns as campaign_views
 from .views import products as product_views
 from .views import orders as order_views
 from .views import reports as report_views
+from .views import sizes as size_views
 
 urlpatterns = [
     # Authentication
@@ -50,5 +51,14 @@ urlpatterns = [
     # Reports
     path('reports/', report_views.reports, name='admin_reports'),
     path('reports/export/', report_views.export_excel, name='admin_reports_export'),
+
+    # Sizes
+    path('sizes/', size_views.size_list, name='admin_sizes'),
+    path('sizes/create/', size_views.size_create_modal, name='admin_size_create'),
+    path('sizes/<int:pk>/edit/', size_views.size_edit_modal, name='admin_size_edit'),
+    path('sizes/<int:pk>/update/', size_views.size_update, name='admin_size_update'),
+    path('sizes/<int:pk>/delete/', size_views.size_delete, name='admin_size_delete'),
+    path('sizes/<int:pk>/toggle/', size_views.size_toggle, name='admin_size_toggle'),
+    path('sizes/bulk-action/', size_views.size_bulk_action, name='admin_size_bulk_action'),
 ]
 

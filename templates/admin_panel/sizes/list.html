@@ -1,0 +1,267 @@
+{% extends 'admin_panel/base.html' %}
+
+{% block title %}Bedenler{% endblock %}
+{% block page_title %}
+<div class="flex items-center gap-3">
+    <div class="w-10 h-10 bg-gradient-to-br from-orange-400 to-orange-600 rounded-xl flex items-center justify-center shadow-lg">
+        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path>
+        </svg>
+    </div>
+    <div>
+        <h1 class="text-2xl font-black text-gray-900">Beden Yönetimi</h1>
+        <p class="text-sm text-gray-500 font-medium">Beden seçeneklerini yönetin</p>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+
+<section class="space-y-6" x-data="{ 
+             selectedItems: [],
+             selectAll: false,
+             allIds: [{% for s in page_obj %}'{{ s.id }}'{% if not forloop.last %},{% endif %}{% endfor %}],
+             toggleAll() {
+                 if (this.selectAll) {
+                     this.selectedItems = [...this.allIds];
+                 } else {
+                     this.selectedItems = [];
+                 }
+             },
+             toggleItem(id) {
+                 const index = this.selectedItems.indexOf(id);
+                 if (index > -1) {
+                     this.selectedItems.splice(index, 1);
+                 } else {
+                     this.selectedItems.push(id);
+                 }
+             }
+         }">
+
+    <!-- Statistics Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-xs font-medium text-gray-500 uppercase">Toplam Beden</p>
+                    <p class="text-2xl font-bold text-gray-900 mt-1">{{ stats.total }}</p>
+                </div>
+                <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                    <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path>
+                    </svg>
+                </div>
+            </div>
+        </div>
+        
+        <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-xs font-medium text-gray-500 uppercase">Aktif Beden</p>
+                    <p class="text-2xl font-bold text-gray-900 mt-1">{{ stats.active }}</p>
+                </div>
+                <div class="w-12 h-12 bg-emerald-100 rounded-lg flex items-center justify-center">
+                    <svg class="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                </div>
+            </div>
+        </div>
+        
+        <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-xs font-medium text-gray-500 uppercase">Pasif Beden</p>
+                    <p class="text-2xl font-bold text-gray-900 mt-1">{{ stats.inactive }}</p>
+                </div>
+                <div class="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
+                    <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"></path>
+                    </svg>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bulk Actions Bar -->
+    <div x-show="selectedItems.length > 0" x-transition x-cloak
+        class="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50">
+        <div class="glass-card rounded-2xl shadow-2xl px-6 py-4 flex items-center gap-4">
+            <span class="text-sm font-semibold text-gray-900">
+                <span x-text="selectedItems.length"></span> beden seçildi
+            </span>
+            <form hx-post="{% url 'admin_size_bulk_action' %}" hx-swap="none" class="contents">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="activate">
+                <template x-for="id in selectedItems" :key="id">
+                    <input type="hidden" name="selected_items" :value="id">
+                </template>
+                {% include 'admin_panel/components/button.html' with label='Aktif Yap' variant='primary' size='sm' type='submit' %}
+            </form>
+            <form hx-post="{% url 'admin_size_bulk_action' %}" hx-swap="none" class="contents">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="deactivate">
+                <template x-for="id in selectedItems" :key="id">
+                    <input type="hidden" name="selected_items" :value="id">
+                </template>
+                {% include 'admin_panel/components/button.html' with label='Pasif Yap' variant='secondary' size='sm' type='submit' %}
+            </form>
+            <form hx-post="{% url 'admin_size_bulk_action' %}" hx-swap="none" class="contents">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="delete">
+                <template x-for="id in selectedItems" :key="id">
+                    <input type="hidden" name="selected_items" :value="id">
+                </template>
+                {% include 'admin_panel/components/button.html' with label='Sil' variant='danger' size='sm' type='submit' %}
+            </form>
+            <button @click="selectedItems = []; selectAll = false"
+                class="px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 font-medium transition-colors">
+                İptal
+            </button>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="bg-white border border-gray-200 rounded-2xl shadow-sm p-5">
+        <form method="GET" class="grid grid-cols-1 lg:grid-cols-4 gap-4 text-sm">
+            <div class="lg:col-span-1">
+                <label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Ara</label>
+                <div class="relative">
+                    <input type="text" name="search" value="{{ search }}" placeholder="Beden adı veya kod..."
+                        class="w-full rounded-xl border-gray-200 focus:ring-2 focus:ring-primary focus:border-transparent pl-10 pr-4 py-2.5">
+                    <svg class="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" fill="none"
+                        stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                    </svg>
+                </div>
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Durum</label>
+                <select name="status"
+                    class="w-full rounded-xl border-gray-200 focus:ring-2 focus:ring-primary focus:border-transparent py-2.5">
+                    <option value="">Tümü</option>
+                    <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Aktif</option>
+                    <option value="inactive" {% if status_filter == 'inactive' %}selected{% endif %}>Pasif</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Sayfa başına</label>
+                <select name="per_page"
+                    class="w-full rounded-xl border-gray-200 focus:ring-2 focus:ring-primary focus:border-transparent py-2.5">
+                    {% for size in per_page_options %}
+                    <option value="{{ size }}" {% if per_page == size %}selected{% endif %}>{{ size }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="flex items-end gap-3">
+                {% url 'admin_sizes' as sizes_url %}
+                {% include 'admin_panel/components/button.html' with label='Temizle' variant='ghost' href=sizes_url %}
+                {% include 'admin_panel/components/button.html' with label='Filtrele' variant='primary' type='submit' %}
+            </div>
+        </form>
+    </div>
+
+    <!-- Top Actions -->
+    <div class="flex items-center justify-between">
+        <p class="text-sm text-gray-600">
+            <span class="font-semibold text-gray-900">{{ page_obj.paginator.count }}</span> beden bulundu
+        </p>
+        <button hx-get="{% url 'admin_size_create' %}"
+                hx-target="#modal-container"
+                hx-swap="innerHTML"
+            class="flex items-center gap-2 px-4 py-2.5 bg-primary text-white font-semibold rounded-xl hover:bg-primary/90 shadow transition-all">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+            </svg>
+            Yeni Beden
+        </button>
+    </div>
+
+    <!-- Sizes Table -->
+    <div class="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-100">
+                <thead class="bg-gray-50 text-[11px] font-semibold uppercase tracking-wide text-gray-500">
+                    <tr>
+                        <th class="px-4 py-3 w-12">
+                            <input type="checkbox" x-model="selectAll" @change="toggleAll()"
+                                class="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary">
+                        </th>
+                        {% include 'admin_panel/orders/partials/sort_header.html' with label='ID' column='id' align='left' %}
+                        {% include 'admin_panel/orders/partials/sort_header.html' with label='Beden İsmi' column='name' align='left' %}
+                        {% include 'admin_panel/orders/partials/sort_header.html' with label='Kod (Slug)' column='slug' align='center' %}
+                        <th class="px-4 py-3 text-center">Durum</th>
+                        <th class="px-4 py-3 text-center">İşlemler</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100 text-sm" id="sizes-tbody">
+                    {% for size in page_obj %}
+                    {% include 'admin_panel/sizes/partials/size_row.html' %}
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="px-4 py-12 text-center text-gray-500">
+                            Filtre kriterlerine uyan beden bulunamadı.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        {% if page_obj.paginator.num_pages > 1 %}
+        <div
+            class="flex flex-col md:flex-row items-center justify-between gap-3 px-4 py-4 border-t border-gray-100 text-sm">
+            <p class="text-gray-500">
+                {{ page_obj.paginator.count }} kayıttan
+                <span class="font-semibold text-gray-900">
+                    {{ page_obj.start_index }} - {{ page_obj.end_index }}
+                </span>
+                arası gösteriliyor.
+            </p>
+            <div class="flex items-center gap-2">
+                {% if page_obj.has_previous %}
+                <a href="?page={{ page_obj.previous_page_number }}&sort={{ sort }}&dir={{ direction }}{{ query_string }}"
+                    class="px-3 py-1.5 rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-100">Önceki</a>
+                {% else %}
+                <span class="px-3 py-1.5 rounded-xl border border-gray-100 text-gray-300">Önceki</span>
+                {% endif %}
+
+                <span class="px-3 py-1.5 rounded-xl bg-gray-100 text-gray-700 font-semibold">
+                    Sayfa {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}
+                </span>
+
+                {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}&sort={{ sort }}&dir={{ direction }}{{ query_string }}"
+                    class="px-3 py-1.5 rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-100">Sonraki</a>
+                {% else %}
+                <span class="px-3 py-1.5 rounded-xl border border-gray-100 text-gray-300">Sonraki</span>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+<!-- Modal Container for HTMX -->
+<div id="modal-container"></div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    // HTMX event listeners
+    document.body.addEventListener('sizeListChanged', () => {
+        window.location.reload();
+    });
+    
+    // Modal success handler
+    document.body.addEventListener('modalSuccess', () => {
+        // Close modal
+        document.getElementById('modal-container').innerHTML = '';
+        // Reload page
+        window.location.reload();
+    });
+</script>
+{% endblock %}
