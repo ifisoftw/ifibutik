@@ -60,5 +60,6 @@ urlpatterns = [
     path('sizes/<int:pk>/delete/', size_views.size_delete, name='admin_size_delete'),
     path('sizes/<int:pk>/toggle/', size_views.size_toggle, name='admin_size_toggle'),
     path('sizes/bulk-action/', size_views.size_bulk_action, name='admin_size_bulk_action'),
+    path('sizes/quick-create/', size_views.size_quick_create, name='admin_size_quick_create'),
 ]
 

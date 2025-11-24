@@ -258,3 +258,57 @@ def size_bulk_action(request):
         return response
     
     return HttpResponse(status=405)
+
+
+@admin_required('manage_products')
+def size_quick_create(request):
+    """Kampanya düzenleme modalı içinden hızlı beden ekleme"""
+    if request.method == 'POST':
+        try:
+            from django.utils.text import slugify
+            from campaigns.models import Campaign
+            
+            name = request.POST.get('name')
+            description = request.POST.get('description', '')
+            campaign_id = request.POST.get('campaign_id')
+            
+            if not name:
+                return HttpResponse('Beden ismi gerekli', status=400)
+                
+            slug = slugify(name)
+            
+            # Create or get size
+            size, created = SizeOption.objects.get_or_create(
+                slug=slug,
+                defaults={'name': name, 'description': description, 'is_active': True}
+            )
+            
+            # If campaign_id is provided, we need to pass the campaign object to the template
+            # so the checkbox logic (checked/unchecked) works correctly.
+            # However, since this is a NEW size, it won't be in campaign.available_sizes yet
+            # UNLESS we add it. But the form hasn't been submitted yet.
+            # The user just wants to ADD the size option to the list so they can check it.
+            # OR, they might expect it to be auto-checked.
+            
+            campaign = None
+            if campaign_id:
+                campaign = get_object_or_404(Campaign, pk=campaign_id)
+            
+            # Get all sizes for the list
+            sizes = SizeOption.objects.filter(is_active=True).order_by('name')
+            
+            context = {
+                'sizes': sizes,
+                'campaign': campaign,
+                # We can pass the newly created size ID to auto-check it in the template if we modify the partial
+                # But for now, let's just return the list.
+                # Actually, if we want it auto-selected, we might need to handle that in the partial or JS.
+                # Let's rely on the user checking it, or we can pass a 'new_size_id' to context.
+            }
+            
+            return render(request, 'admin_panel/campaigns/partials/size_checkboxes.html', context)
+            
+        except Exception as e:
+            return HttpResponse(f'<div class="text-red-600">Hata: {str(e)}</div>', status=400)
+            
+    return HttpResponse(status=405)

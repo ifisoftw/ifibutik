@@ -1,0 +1,8 @@
+{% for size in sizes %}
+<label class="inline-flex items-center gap-2 px-4 py-2 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-primary transition-colors">
+    <input type="checkbox" name="sizes" value="{{ size.id }}" 
+           {% if size in campaign.available_sizes.all %}checked{% endif %}
+           class="rounded text-primary focus:ring-primary">
+    <span class="text-sm font-medium text-gray-700">{{ size.name }}</span>
+</label>
+{% endfor %}
