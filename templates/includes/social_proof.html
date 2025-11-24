@@ -1,5 +1,5 @@
 <div x-data="socialProof()" x-init="init()" 
-     class="fixed bottom-6 left-6 z-50 pointer-events-none font-sans">
+     class="fixed bottom-3 left-3 z-50 pointer-events-none font-sans">
     
     <div x-show="visible" 
          x-transition:enter="transition ease-[cubic-bezier(0.34,1.56,0.64,1)] duration-500"
@@ -11,45 +11,45 @@
          class="pointer-events-auto relative group">
         
         <!-- Gradient Border & Glow -->
-        <div class="absolute -inset-0.5 bg-gradient-to-r from-brand-pink via-brand-purple to-brand-coral rounded-2xl opacity-75 blur-sm group-hover:opacity-100 transition duration-500"></div>
+        <div class="absolute -inset-0.5 bg-gradient-to-r from-brand-pink via-brand-purple to-brand-coral rounded-lg opacity-75 blur-sm group-hover:opacity-100 transition duration-500"></div>
         
         <!-- Main Card -->
-        <div class="relative flex items-center gap-4 p-4 bg-white/90 backdrop-blur-xl border border-white/50 shadow-2xl rounded-2xl max-w-sm w-full">
+        <div class="relative flex items-center gap-2 p-2 bg-white/90 backdrop-blur-xl border border-white/50 shadow-lg rounded-lg w-[280px]">
             
             <!-- Product Image with Ring -->
             <div class="relative flex-shrink-0">
-                <div class="w-14 h-14 rounded-xl overflow-hidden border-2 border-white shadow-md">
+                <div class="w-10 h-10 rounded-md overflow-hidden border-2 border-white shadow-sm">
                     <img :src="data.product_image" alt="Product" class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700">
                 </div>
                 <!-- Verified Badge -->
-                <div class="absolute -bottom-1 -right-1 bg-green-500 text-white rounded-full p-0.5 border-2 border-white shadow-sm">
-                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                <div class="absolute -bottom-0.5 -right-0.5 bg-green-500 text-white rounded-full p-0.5 border border-white shadow-sm">
+                    <svg class="w-2 h-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
                 </div>
             </div>
 
             <!-- Content -->
-            <div class="flex flex-col min-w-[180px]">
+            <div class="flex flex-col min-w-0 flex-1">
                 <div class="flex items-center justify-between mb-0.5">
-                    <span x-text="data.name" class="text-xs font-bold text-gray-900"></span>
-                    <span class="text-[10px] font-medium text-gray-400 flex items-center gap-1">
-                        <svg class="w-3 h-3 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    <span x-text="data.name" class="text-[10px] font-bold text-gray-900 truncate"></span>
+                    <span class="text-[8px] font-medium text-gray-400 flex items-center gap-0.5 ml-1 flex-shrink-0">
+                        <svg class="w-2 h-2 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                         <span x-text="data.time_ago"></span>
                     </span>
                 </div>
                 
-                <div class="text-xs text-gray-500 mb-1">
-                    <span class="text-brand-pink font-medium">Yeni sipariş verdi</span>
-                    <span class="mx-1 text-gray-300">•</span>
+                <div class="text-[9px] text-gray-500 mb-0.5">
+                    <span class="text-brand-pink font-medium">Sipariş verdi</span>
+                    <span class="mx-0.5 text-gray-300">•</span>
                     <span x-text="data.location"></span>
                 </div>
                 
-                <div class="text-sm font-bold text-gray-800 leading-tight line-clamp-1" x-text="data.product_name"></div>
-                <div class="text-[10px] text-gray-500 line-clamp-1 mt-0.5" x-text="data.product_description"></div>
+                <div class="text-[10px] font-bold text-gray-800 leading-tight line-clamp-1" x-text="data.product_name"></div>
+                <div class="text-[8px] text-gray-500 line-clamp-1 mt-0.5" x-text="data.product_description"></div>
             </div>
 
             <!-- Close Button -->
-            <button @click="visible = false" class="absolute -top-2 -right-2 bg-white text-gray-400 hover:text-brand-pink hover:bg-red-50 rounded-full p-1 shadow-md border border-gray-100 transition-all duration-300 opacity-0 group-hover:opacity-100 scale-75 group-hover:scale-100">
-                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            <button @click="visible = false" class="absolute -top-1 -right-1 bg-white text-gray-400 hover:text-brand-pink hover:bg-red-50 rounded-full p-0.5 shadow-sm border border-gray-100 transition-all duration-300 opacity-0 group-hover:opacity-100">
+                <svg class="w-2 h-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
             </button>
         </div>
     </div>
