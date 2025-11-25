@@ -740,6 +740,13 @@ function campaignStore() {
                     if (emptyIndex !== -1) {
                         this.selectedProducts[emptyIndex] = product;
                         this.totalSelected++;
+                        
+                        // Eğer son ürün seçildiyse otomatik kaydır
+                        if (this.totalSelected >= this.minQty) {
+                            setTimeout(() => {
+                                document.getElementById('selected-products-area').scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            }, 500);
+                        }
                     }
                 } else {
                     document.getElementById('selected-products-area').scrollIntoView({ behavior: 'smooth', block: 'center' });
