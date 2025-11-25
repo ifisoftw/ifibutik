@@ -40,6 +40,13 @@ class Campaign(models.Model):
     def __str__(self):
         return self.title
 
+    @property
+    def formatted_title(self):
+        words = self.title.split()
+        if len(words) > 2:
+            return f"{' '.join(words[:2])}<br>{' '.join(words[2:])}"
+        return self.title
+
 class CampaignProduct(models.Model):
     campaign = models.ForeignKey(Campaign, on_delete=models.CASCADE, verbose_name="Kampanya")
     product = models.ForeignKey(Product, on_delete=models.CASCADE, verbose_name="Ürün")
