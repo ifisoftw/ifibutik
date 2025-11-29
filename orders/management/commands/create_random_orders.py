@@ -220,3 +220,4 @@ class Command(BaseCommand):
         for status_name, count in status_counts.items():
             self.stdout.write(f'{status_name}: {count} adet')
 
+

@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}{{ campaign.title }} | İFİ Butik{% endblock %}
+{% block title %}{{ campaign.title }} | Sürekli Kampanya{% endblock %}
 
 {% block meta %}
 <meta name="description" content="{{ campaign.description|truncatechars:160 }}">
@@ -9,7 +9,7 @@
 <!-- Open Graph / Facebook -->
 <meta property="og:type" content="website">
 <meta property="og:url" content="{{ request.build_absolute_uri }}">
-<meta property="og:title" content="{{ campaign.title }} | İFİ Butik">
+<meta property="og:title" content="{{ campaign.title }} | Sürekli Kampanya">
 <meta property="og:description" content="{{ campaign.description|truncatechars:160 }}">
 {% if campaign.banner_image %}
 <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{{ campaign.banner_image.url }}">
@@ -18,7 +18,7 @@
 <!-- Twitter -->
 <meta property="twitter:card" content="summary_large_image">
 <meta property="twitter:url" content="{{ request.build_absolute_uri }}">
-<meta property="twitter:title" content="{{ campaign.title }} | İFİ Butik">
+<meta property="twitter:title" content="{{ campaign.title }} | Sürekli Kampanya">
 <meta property="twitter:description" content="{{ campaign.description|truncatechars:160 }}">
 {% if campaign.banner_image %}
 <meta property="twitter:image" content="{{ request.scheme }}://{{ request.get_host }}{{ campaign.banner_image.url }}">
@@ -31,7 +31,7 @@
     <!-- Logo Header (Glassmorphism) -->
     <div class="py-2 text-center border-b border-white/20 sticky top-0 z-50 glass-white shadow-lg">
         <h1 class="text-2xl font-black tracking-wider uppercase gradient-text animate-fade-in">
-            İFİ BUTİK
+            SUREKLİ KAMPANYA
         </h1>
     </div>
 
