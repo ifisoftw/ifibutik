@@ -32,6 +32,13 @@ def settings_view(request):
         settings.onesignal_app_id = request.POST.get('onesignal_app_id', settings.onesignal_app_id)
         settings.facebook_domain_verification = request.POST.get('facebook_domain_verification', settings.facebook_domain_verification)
         
+        # Security
+        try:
+            settings.rate_limit_count = int(request.POST.get('rate_limit_count', settings.rate_limit_count))
+            settings.rate_limit_period = int(request.POST.get('rate_limit_period', settings.rate_limit_period))
+        except (ValueError, TypeError):
+            pass  # Keep existing values if invalid input
+        
         settings.save()
         messages.success(request, 'Ayarlar başarıyla güncellendi.')
         return redirect('admin_settings')

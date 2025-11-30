@@ -91,6 +91,10 @@ class SiteSettings(models.Model):
     onesignal_app_id = models.CharField(max_length=100, blank=True, verbose_name="OneSignal App ID")
     facebook_domain_verification = models.CharField(max_length=100, blank=True, verbose_name="Facebook Domain Verification")
 
+    # Security
+    rate_limit_count = models.PositiveIntegerField(default=5, verbose_name="Rate Limit (Adet)")
+    rate_limit_period = models.PositiveIntegerField(default=600, verbose_name="Rate Limit Süresi (Saniye)")
+
     class Meta:
         verbose_name = 'Site Ayarları'
         verbose_name_plural = 'Site Ayarları'

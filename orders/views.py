@@ -12,9 +12,36 @@ from django.utils import timezone
 from django.utils.timesince import timesince
 from django.db import transaction
 from django.db.models import F
+from django.core.cache import cache
+from admin_panel.models import SiteSettings
 
 @require_POST
 def create_order(request):
+    # GÜVENLİK: Rate Limiting (Spam Koruması)
+    # Ayarları veritabanından çek
+    settings = SiteSettings.load()
+    limit_count = settings.rate_limit_count
+    limit_period = settings.rate_limit_period
+
+    # Her IP için belirlenen sürede maksimum X sipariş
+    ip_address = request.META.get('REMOTE_ADDR')
+    cache_key = f"rate_limit_order_{ip_address}"
+    request_count = cache.get(cache_key, 0)
+
+    if request_count >= limit_count:
+        # Kalan süreyi hesapla (opsiyonel, kullanıcıya göstermek için)
+        return HttpResponse(f"Çok fazla deneme yaptınız. Lütfen {int(limit_period/60)} dakika sonra tekrar deneyin.", status=429)
+
+    # Sayacı artır ve süreyi yenile (veya ilk kez oluştur)
+    # Not: Cache timeout'u her işlemde yenilenmemeli, ilk set edildiği andan itibaren işlemeli
+    # Ancak basitlik için burada her işlemde timeout'u set ediyoruz, daha gelişmiş bir rate limit için
+    # cache.add() kullanılabilir veya fixed window algoritması uygulanabilir.
+    # Şimdilik basit counter mantığı yeterli.
+    if request_count == 0:
+        cache.set(cache_key, 1, timeout=limit_period)
+    else:
+        cache.incr(cache_key)
+
     # Form verilerini al
     campaign_id = request.POST.get('campaign_id')
     campaign = get_object_or_404(Campaign, id=campaign_id)
