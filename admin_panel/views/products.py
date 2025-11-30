@@ -34,25 +34,55 @@ def product_list(request):
             Q(description__icontains=search)
         )
     
-    # Status filter
-    status_filter = request.GET.get('status', '')
-    if status_filter == 'active':
-        products = products.filter(is_active=True)
-    elif status_filter == 'inactive':
-        products = products.filter(is_active=False)
-    elif status_filter == 'in_stock':
-        products = products.filter(stock_qty__gt=0)
-    elif status_filter == 'out_of_stock':
-        products = products.filter(stock_qty=0)
+    # --- Dynamic Filter Counts ---
     
-    # Campaign filter
+    # Get filter values first
+    status_filter = request.GET.get('status', '')
     campaign_filter = request.GET.get('campaign', '')
-    if campaign_filter == 'with_campaign':
-        products = products.filter(campaign_count__gt=0)
-    elif campaign_filter == 'without_campaign':
-        products = products.filter(campaign_count=0)
-    elif campaign_filter == 'multiple':
-        products = products.filter(campaign_count__gt=1)
+    
+    # Base QuerySet (Search applied, but no other filters yet)
+    base_qs = products
+    
+    # Helper to apply filters
+    def apply_filters(qs, exclude_filter=None):
+        if exclude_filter != 'status' and status_filter:
+            if status_filter == 'active':
+                qs = qs.filter(is_active=True)
+            elif status_filter == 'inactive':
+                qs = qs.filter(is_active=False)
+            elif status_filter == 'in_stock':
+                qs = qs.filter(stock_qty__gt=0)
+            elif status_filter == 'out_of_stock':
+                qs = qs.filter(stock_qty=0)
+        
+        if exclude_filter != 'campaign' and campaign_filter:
+            if campaign_filter == 'with_campaign':
+                qs = qs.filter(campaign_count__gt=0)
+            elif campaign_filter == 'without_campaign':
+                qs = qs.filter(campaign_count=0)
+            elif campaign_filter == 'multiple':
+                qs = qs.filter(campaign_count__gt=1)
+        return qs
+
+    # 1. Status Counts (Apply Campaign filter, exclude Status filter)
+    status_qs = apply_filters(base_qs, exclude_filter='status')
+    status_counts = {
+        'active': status_qs.filter(is_active=True).count(),
+        'inactive': status_qs.filter(is_active=False).count(),
+        'in_stock': status_qs.filter(stock_qty__gt=0).count(),
+        'out_of_stock': status_qs.filter(stock_qty=0).count(),
+    }
+
+    # 2. Campaign Counts (Apply Status filter, exclude Campaign filter)
+    campaign_qs = apply_filters(base_qs, exclude_filter='campaign')
+    campaign_counts = {
+        'with_campaign': campaign_qs.filter(campaign_count__gt=0).count(),
+        'without_campaign': campaign_qs.filter(campaign_count=0).count(),
+        'multiple': campaign_qs.filter(campaign_count__gt=1).count(),
+    }
+
+    # Apply filters to main queryset for display
+    products = apply_filters(base_qs)
     
     # Sorting
     sort = request.GET.get('sort', 'id')
@@ -71,7 +101,7 @@ def product_list(request):
     else:
         products = products.order_by(f'-{sort_field}')
     
-    # Statistics
+    # Statistics (Global)
     total_products = Product.objects.count()
     active_products = Product.objects.filter(is_active=True).count()
     out_of_stock = Product.objects.filter(stock_qty=0).count()
@@ -101,6 +131,8 @@ def product_list(request):
         'query_string': base_query,
         'per_page': per_page,
         'per_page_options': [10, 20, 30, 50],
+        'status_counts': status_counts,
+        'campaign_counts': campaign_counts,
         'stats': {
             'total': total_products,
             'active': active_products,

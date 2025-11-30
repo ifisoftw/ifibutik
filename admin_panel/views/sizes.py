@@ -23,6 +23,11 @@ def size_list(request):
             Q(description__icontains=search)
         )
     
+    # --- Dynamic Counts (Status) ---
+    # Calculate counts based on current search, BEFORE status filter
+    active_count = sizes.filter(is_active=True).count()
+    inactive_count = sizes.filter(is_active=False).count()
+
     # Status filter
     status_filter = request.GET.get('status', '')
     if status_filter == 'active':
@@ -44,7 +49,7 @@ def size_list(request):
     else:
         sizes = sizes.order_by(sort_field)
     
-    # Statistics
+    # Statistics (Global)
     total_sizes = SizeOption.objects.count()
     active_sizes = SizeOption.objects.filter(is_active=True).count()
     inactive_sizes = SizeOption.objects.filter(is_active=False).count()
@@ -72,6 +77,10 @@ def size_list(request):
         'query_string': base_query,
         'per_page': per_page,
         'per_page_options': [10, 20, 30, 50],
+        'status_counts': {
+            'active': active_count,
+            'inactive': inactive_count
+        },
         'stats': {
             'total': total_sizes,
             'active': active_sizes,

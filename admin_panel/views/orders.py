@@ -103,13 +103,97 @@ def order_list(request):
     base_query = preserved_query.urlencode()
     base_query = f'&{base_query}' if base_query else ''
 
-    # Get available sizes from OrderItems
-    available_sizes = OrderItem.objects.filter(
-        selected_size__isnull=False
-    ).exclude(
-        selected_size=''
-    ).values_list('selected_size', flat=True).distinct().order_by('selected_size')
+    # --- Dynamic Filter Counts Calculation ---
     
+    # Base queryset with only Search and Date filters (Common for all)
+    base_qs = Order.objects.all()
+    
+    # Apply Search
+    if search:
+        base_qs = base_qs.filter(
+            Q(customer_name__icontains=search) |
+            Q(phone__icontains=search) |
+            Q(id__icontains=search) |
+            Q(tracking_code__icontains=search)
+        )
+    
+    # Apply Date
+    if date_from:
+        base_qs = base_qs.filter(created_at__date__gte=date_from)
+    if date_to:
+        base_qs = base_qs.filter(created_at__date__lte=date_to)
+
+    # Helper to apply other filters
+    def apply_filters(qs, exclude_filter=None):
+        if exclude_filter != 'status' and status:
+            qs = qs.filter(status=status)
+        if exclude_filter != 'campaign' and campaign_id:
+            qs = qs.filter(campaign_id=campaign_id)
+        if exclude_filter != 'product' and product_id:
+            qs = qs.filter(items__product_id=product_id)
+        if exclude_filter != 'size' and size_filter:
+            qs = qs.filter(items__selected_size__icontains=size_filter)
+        return qs
+
+    # 1. Status Counts (Apply all filters EXCEPT status)
+    status_qs = apply_filters(base_qs, exclude_filter='status')
+    status_counts_data = status_qs.values('status').annotate(count=Count('id'))
+    status_counts = {item['status']: item['count'] for item in status_counts_data}
+
+    # 2. Campaign Counts (Apply all filters EXCEPT campaign)
+    campaign_qs = apply_filters(base_qs, exclude_filter='campaign')
+    campaign_counts_data = campaign_qs.values('campaign__id').annotate(count=Count('id'))
+    campaign_counts = {str(item['campaign__id']): item['count'] for item in campaign_counts_data if item['campaign__id']}
+
+    # 3. Product Counts (Apply all filters EXCEPT product)
+    product_qs = apply_filters(base_qs, exclude_filter='product')
+    product_counts_data = product_qs.values('items__product__id').annotate(count=Count('id'))
+    product_counts = {str(item['items__product__id']): item['count'] for item in product_counts_data if item['items__product__id']}
+
+    # 4. Size Counts (Apply all filters EXCEPT size)
+    size_qs = apply_filters(base_qs, exclude_filter='size')
+    size_counts_data = size_qs.exclude(items__selected_size__isnull=True).exclude(items__selected_size='').values('items__selected_size').annotate(count=Count('id'))
+    size_counts = {item['items__selected_size']: item['count'] for item in size_counts_data}
+
+    # Prepare context data with counts
+    
+    # Status Choices with Counts
+    status_choices_with_counts = []
+    for code, label in Order.STATUS_CHOICES:
+        count = status_counts.get(code, 0)
+        status_choices_with_counts.append((code, label, count))
+
+    # Campaigns with Counts
+    campaigns_with_counts = []
+    for campaign in Campaign.objects.filter(is_active=True).order_by('title'):
+        count = campaign_counts.get(str(campaign.id), 0)
+        campaigns_with_counts.append({
+            'id': campaign.id,
+            'title': campaign.title,
+            'count': count
+        })
+
+    # Products with Counts
+    products_with_counts = []
+    for product in Product.objects.filter(is_active=True).order_by('name'):
+        count = product_counts.get(str(product.id), 0)
+        products_with_counts.append({
+            'id': product.id,
+            'name': product.name,
+            'count': count
+        })
+
+    # Sizes with Counts
+    # Get all unique sizes first
+    all_sizes = OrderItem.objects.filter(selected_size__isnull=False).exclude(selected_size='').values_list('selected_size', flat=True).distinct().order_by('selected_size')
+    sizes_with_counts = []
+    for size in all_sizes:
+        count = size_counts.get(size, 0)
+        sizes_with_counts.append({
+            'name': size,
+            'count': count
+        })
+
     context = {
         'page_obj': page_obj,
         'status': status,
@@ -122,13 +206,13 @@ def order_list(request):
         'sort': sort,
         'direction': direction,
         'query_string': base_query,
-        'status_choices': Order.STATUS_CHOICES,
-        'campaigns': Campaign.objects.filter(is_active=True).order_by('title'),
-        'products': Product.objects.filter(is_active=True).order_by('name'),
+        'status_choices': status_choices_with_counts, # Updated
+        'campaigns': campaigns_with_counts, # Updated
+        'products': products_with_counts, # Updated
         'product_id': product_id,
-        'available_sizes': available_sizes,
+        'available_sizes': sizes_with_counts, # Updated
         'per_page_options': [10, 20, 30, 50],
-        'stats': stats,  # İstatistikler eklendi
+        'stats': stats,
     }
     return render(request, 'admin_panel/orders/list.html', context)
 

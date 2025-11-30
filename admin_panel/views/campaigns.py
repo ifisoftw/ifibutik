@@ -26,6 +26,11 @@ def campaign_list(request):
             Q(description__icontains=search)
         )
     
+    # --- Dynamic Counts (Status) ---
+    # Calculate counts based on current search, BEFORE status filter
+    active_count = campaigns.filter(is_active=True).count()
+    inactive_count = campaigns.filter(is_active=False).count()
+
     # Status filter
     status_filter = request.GET.get('status', '')
     if status_filter == 'active':
@@ -72,6 +77,10 @@ def campaign_list(request):
         'query_string': base_query,
         'per_page': per_page,
         'per_page_options': [10, 20, 30, 50],
+        'status_counts': {
+            'active': active_count,
+            'inactive': inactive_count
+        }
     }
     
     return render(request, 'admin_panel/campaigns/list.html', context)

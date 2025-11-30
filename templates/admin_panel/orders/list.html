@@ -250,8 +250,8 @@
                     <select name="status" onchange="this.form.submit()"
                         class="w-full rounded-lg border-gray-200 text-sm py-2 px-2 focus:ring-1 focus:ring-primary focus:border-primary">
                         <option value="">Durum: Tümü</option>
-                        {% for code, label in status_choices %}
-                        <option value="{{ code }}" {% if status == code %}selected{% endif %}>{{ label }}</option>
+                        {% for code, label, count in status_choices %}
+                        <option value="{{ code }}" {% if status == code %}selected{% endif %}>{{ label }} ({{ count }})</option>
                         {% endfor %}
                     </select>
                 </div>
@@ -263,7 +263,7 @@
                         <option value="">Kampanya: Tümü</option>
                         {% for campaign in campaigns %}
                         <option value="{{ campaign.id }}" {% if campaign_id|default:'' == campaign.id|stringformat:'s' %}selected{% endif %}>
-                            {{ campaign.title|truncatechars:15 }}
+                            {{ campaign.title|truncatechars:15 }} ({{ campaign.count }})
                         </option>
                         {% endfor %}
                     </select>
@@ -276,7 +276,7 @@
                         <option value="">Ürün: Tümü</option>
                         {% for product in products %}
                         <option value="{{ product.id }}" {% if product_id|default:'' == product.id|stringformat:'s' %}selected{% endif %}>
-                            {{ product.name|truncatechars:15 }}
+                            {{ product.name|truncatechars:15 }} ({{ product.count }})
                         </option>
                         {% endfor %}
                     </select>
@@ -287,13 +287,12 @@
                     <select name="size" onchange="this.form.submit()"
                         class="w-full rounded-lg border-gray-200 text-sm py-2 px-2 focus:ring-1 focus:ring-primary focus:border-primary">
                         <option value="">Beden: Tümü</option>
-                        {% for size in available_sizes %}
-                        <option value="{{ size }}" {% if size_filter == size %}selected{% endif %}>{{ size }}</option>
+                        {% for size_obj in available_sizes %}
+                        <option value="{{ size_obj.name }}" {% if size_filter == size_obj.name %}selected{% endif %}>{{ size_obj.name }} ({{ size_obj.count }})</option>
                         {% endfor %}
                     </select>
                 </div>
 
-                <!-- Date Range Picker -->
                 <div class="col-span-2 lg:col-span-2 relative" x-data="{
                     isOpen: false,
                     start: '{{ date_from|default:'' }}',
@@ -352,12 +351,12 @@
                         // Update hidden inputs and submit
                         this.$refs.dateFrom.value = this.start;
                         this.$refs.dateTo.value = this.end;
-                        this.form.submit();
+                        this.$el.closest('form').submit();
                     },
                     applyCustom() {
                         this.$refs.dateFrom.value = this.start;
                         this.$refs.dateTo.value = this.end;
-                        this.form.submit();
+                        this.$el.closest('form').submit();
                     }
                 }" @click.away="isOpen = false">
                     
