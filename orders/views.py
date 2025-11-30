@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse, JsonResponse
 from .models import Order, OrderItem
-from campaigns.models import Campaign, SizeOption
+from campaigns.models import Campaign, SizeOption, CampaignProduct
 from products.models import Product
 from addresses.models import City, District, Neighborhood
 from django.views.decorators.http import require_POST
@@ -10,6 +10,8 @@ import random
 import string
 from django.utils import timezone
 from django.utils.timesince import timesince
+from django.db import transaction
+from django.db.models import F
 
 @require_POST
 def create_order(request):
@@ -45,6 +47,22 @@ def create_order(request):
     if len(selected_product_ids) < campaign.min_quantity:
         return HttpResponse(f"En az {campaign.min_quantity} adet ürün seçmelisiniz.", status=400)
 
+    # GÜVENLİK KONTROLÜ: Fiyat Manipülasyonunu Engelleme
+    # Seçilen ürünlerin gerçekten bu kampanyaya ait olup olmadığını kontrol et
+    valid_product_ids = set(
+        CampaignProduct.objects.filter(campaign=campaign).values_list('product_id', flat=True)
+    )
+    
+    try:
+        # Gelen ID'leri integer set'e çevir
+        selected_ids_int = set(int(pid) for pid in selected_product_ids)
+    except ValueError:
+        return HttpResponse("Geçersiz ürün ID formatı.", status=400)
+
+    # Seçilen ürünlerin hepsi geçerli ürünler kümesinin alt kümesi olmalı
+    if not selected_ids_int.issubset(valid_product_ids):
+        return HttpResponse("Güvenlik Hatası: Seçilen ürünlerden bazıları bu kampanyaya ait değil.", status=400)
+
     # 10 haneli unique tracking number oluştur
     def generate_tracking_number():
         while True:
@@ -54,50 +72,64 @@ def create_order(request):
     
     tracking_number = generate_tracking_number()
 
-    # Siparişi oluştur
-    order = Order.objects.create(
-        campaign=campaign,
-        status='new',
-        customer_name=customer_name,
-        phone=phone,
-        tracking_number=tracking_number,  # Yeni eklenen alan
-        # ForeignKey ilişkileri
-        city_fk=city_obj,
-        district_fk=district_obj,
-        neighborhood_fk=neighborhood_obj,
-        # Text field'lar (backward compatibility)
-        city=city_obj.name if city_obj else "",
-        district=district_obj.name if district_obj else "",
-        full_address=full_address,
-        campaign_price=campaign.price,
-        cargo_price=campaign.shipping_price_discounted,  # İndirimli fiyat kullan
-        cod_fee=campaign.cod_price_discounted,  # İndirimli fiyat kullan
-        total_amount=campaign.price + campaign.shipping_price_discounted + campaign.cod_price_discounted  # Doğru hesaplama
-    )
-    
-    # Sipariş kalemlerini ekle
-    for i, product_id in enumerate(selected_product_ids):
-        product = Product.objects.get(id=product_id)
-        size_slug = selected_sizes[i] if i < len(selected_sizes) else None
-        
-        # Beden ismini bul (slug'dan)
-        size_name = ""
-        if size_slug:
-            size_obj = SizeOption.objects.filter(slug=size_slug).first()
-            if size_obj:
-                size_name = size_obj.name
+    # Siparişi oluştur (Transaction Atomic ile)
+    try:
+        with transaction.atomic():
+            # Siparişi oluştur
+            order = Order.objects.create(
+                campaign=campaign,
+                status='new',
+                customer_name=customer_name,
+                phone=phone,
+                tracking_number=tracking_number,  # Yeni eklenen alan
+                # ForeignKey ilişkileri
+                city_fk=city_obj,
+                district_fk=district_obj,
+                neighborhood_fk=neighborhood_obj,
+                # Text field'lar (backward compatibility)
+                city=city_obj.name if city_obj else "",
+                district=district_obj.name if district_obj else "",
+                full_address=full_address,
+                campaign_price=campaign.price,
+                cargo_price=campaign.shipping_price_discounted,  # İndirimli fiyat kullan
+                cod_fee=campaign.cod_price_discounted,  # İndirimli fiyat kullan
+                total_amount=campaign.price + campaign.shipping_price_discounted + campaign.cod_price_discounted  # Doğru hesaplama
+            )
+            
+            # Sipariş kalemlerini ekle
+            for i, product_id in enumerate(selected_product_ids):
+                # GÜVENLİK: Race Condition Önleme
+                # select_for_update() ile satırı kilitle
+                product = Product.objects.select_for_update().get(id=product_id)
+                
+                # Stok kontrolü (Tekrar)
+                if product.stock_qty < 1:
+                    raise ValueError(f"{product.name} için stok yetersiz.")
 
-        OrderItem.objects.create(
-            order=order,
-            product=product,
-            quantity=1,
-            selected_size=size_name
-        )
-        
-        # Stok düşme işlemi
-        if product.stock_qty > 0:
-            product.stock_qty -= 1
-            product.save(update_fields=['stock_qty'])
+                size_slug = selected_sizes[i] if i < len(selected_sizes) else None
+                
+                # Beden ismini bul (slug'dan)
+                size_name = ""
+                if size_slug:
+                    size_obj = SizeOption.objects.filter(slug=size_slug).first()
+                    if size_obj:
+                        size_name = size_obj.name
+
+                OrderItem.objects.create(
+                    order=order,
+                    product=product,
+                    quantity=1,
+                    selected_size=size_name
+                )
+                
+                # Stok düşme işlemi (Atomic Update)
+                product.stock_qty = F('stock_qty') - 1
+                product.save(update_fields=['stock_qty'])
+                
+    except ValueError as e:
+        return HttpResponse(str(e), status=400)
+    except Exception as e:
+        return HttpResponse("Sipariş oluşturulurken bir hata oluştu.", status=500)
     
     # Siparişi session'a kaydet (success sayfası için)
     request.session['last_order_id'] = order.id

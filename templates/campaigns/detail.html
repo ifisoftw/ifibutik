@@ -279,7 +279,7 @@
                         </div>
 
                         <!-- Zoom Button (Sol Alt Köşe - Her Zaman Görünür) -->
-                        <button @click.stop="openLightbox([{% for img in cp.product.images.all %}'{{ img.image.url }}',{% endfor %}]); trackEvent('AddToWishlist', {content_name: '{{ cp.product.name|escapejs }}', content_ids: ['{{ cp.product.id }}'], content_type: 'product', value: {{ campaign.price }}, currency: 'TRY'})" 
+                        <button @click.stop="openLightbox([{% for img in cp.product.images.all %}'{{ img.image.url }}',{% endfor %}]); trackEvent('AddToWishlist', {content_name: '{{ cp.product.name|escapejs }}', content_ids: ['{{ cp.product.id }}'], content_type: 'product', value: {{ campaign.price|stringformat:".2f" }}, currency: 'TRY'})" 
                                 class="absolute bottom-1.5 left-1.5 z-30 bg-black/50 backdrop-blur-md p-1.5 rounded-md text-white hover:bg-brand-pink hover:scale-110 transition-all duration-300 shadow-md">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"></path></svg>
                         </button>
@@ -493,7 +493,7 @@
                          <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider ml-1">Kişisel Bilgiler</label>
                          <div class="grid grid-cols-2 gap-3">
                              <input type="text" name="first_name" placeholder="İsim *" required 
-                                    @blur="if($el.value.length > 2) trackEvent('InitiatePurchase', {content_name: '{{ campaign.title|escapejs }}', content_ids: ['{{ campaign.id }}'], value: {{ campaign.price }}, currency: 'TRY'})"
+                                    @blur="if($el.value.length > 2) trackEvent('InitiatePurchase', {content_name: '{{ campaign.title|escapejs }}', content_ids: ['{{ campaign.id }}'], value: {{ campaign.price|stringformat:".2f" }}, currency: 'TRY'})"
                                     class="w-full rounded-xl border-gray-200 shadow-sm focus:border-brand-pink focus:ring-2 focus:ring-pink-200 py-3.5 px-4 text-sm transition-all hover:border-gray-300">
                              <input type="text" name="last_name" placeholder="Soyisim *" required class="w-full rounded-xl border-gray-200 shadow-sm focus:border-brand-pink focus:ring-2 focus:ring-pink-200 py-3.5 px-4 text-sm transition-all hover:border-gray-300">
                          </div>
@@ -534,7 +534,7 @@
                              </select>
 
                              <textarea name="address_detail" rows="3" placeholder="Adres Detayı *" required 
-                                       @blur="if($el.value.length > 5) trackEvent('AddPaymentInfo', {content_name: '{{ campaign.title|escapejs }}', content_ids: ['{{ campaign.id }}'], value: {{ campaign.price }}, currency: 'TRY', payment_type: 'COD'})"
+                                       @blur="if($el.value.length > 5) trackEvent('AddPaymentInfo', {content_name: '{{ campaign.title|escapejs }}', content_ids: ['{{ campaign.id }}'], value: {{ campaign.price|stringformat:".2f" }}, currency: 'TRY', payment_type: 'COD'})"
                                        class="w-full rounded-xl border-gray-200 shadow-sm focus:border-brand-pink focus:ring-2 focus:ring-pink-200 py-3.5 px-4 text-sm transition-all hover:border-gray-300"></textarea>
                          </div>
                     </div>
@@ -728,7 +728,7 @@ function campaignStore() {
                 content_name: '{{ campaign.title|escapejs }}',
                 content_ids: ['{{ campaign.id }}'],
                 content_type: 'product_group',
-                value: {{ campaign.price }},
+                value: {{ campaign.price|stringformat:".2f" }},
                 currency: 'TRY'
             });
         },
@@ -790,7 +790,7 @@ function campaignStore() {
                             content_name: product.name,
                             content_ids: [product.id],
                             content_type: 'product',
-                            value: {{ campaign.price|div:campaign.min_quantity|floatformat:2 }},
+                            value: {{ campaign.unit_price|stringformat:".2f" }},
                             currency: 'TRY'
                         });
 

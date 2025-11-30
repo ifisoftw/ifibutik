@@ -47,6 +47,12 @@ class Campaign(models.Model):
             return f"{' '.join(words[:2])}<br>{' '.join(words[2:])}"
         return self.title
 
+    @property
+    def unit_price(self):
+        if self.min_quantity > 0:
+            return self.price / self.min_quantity
+        return 0
+
 class CampaignProduct(models.Model):
     campaign = models.ForeignKey(Campaign, on_delete=models.CASCADE, verbose_name="Kampanya")
     product = models.ForeignKey(Product, on_delete=models.CASCADE, verbose_name="Ürün")
