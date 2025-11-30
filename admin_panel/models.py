@@ -69,3 +69,41 @@ class AdminUser(models.Model):
         """Kullanıcının belirli bir izni olup olmadığını kontrol et"""
         return self.role.permissions.filter(permission=permission_code).exists()
 
+
+class SiteSettings(models.Model):
+    # Store Info
+    store_name = models.CharField(max_length=255, default="Gumbuz Butik", verbose_name="Mağaza Adı")
+    store_slogan = models.CharField(max_length=255, blank=True, verbose_name="Mağaza Sloganı")
+    store_description = models.TextField(blank=True, verbose_name="Mağaza Açıklaması")
+    store_logo = models.ImageField(upload_to='settings/', blank=True, verbose_name="Mağaza Logosu")
+    
+    # Contact
+    whatsapp_number = models.CharField(max_length=20, blank=True, verbose_name="WhatsApp Numarası")
+    instagram_url = models.URLField(blank=True, verbose_name="Instagram Profili")
+    facebook_url = models.URLField(blank=True, verbose_name="Facebook Sayfası")
+    
+    # Integrations
+    gtm_id = models.CharField(max_length=50, blank=True, verbose_name="Google Tag Manager ID")
+    ga4_id = models.CharField(max_length=50, blank=True, verbose_name="Google Analytics 4 ID")
+    pixel_id = models.CharField(max_length=50, blank=True, verbose_name="Meta Pixel ID")
+    hotjar_id = models.CharField(max_length=50, blank=True, verbose_name="Hotjar ID")
+    contentsquare_id = models.CharField(max_length=50, blank=True, verbose_name="ContentSquare ID")
+    onesignal_app_id = models.CharField(max_length=100, blank=True, verbose_name="OneSignal App ID")
+    facebook_domain_verification = models.CharField(max_length=100, blank=True, verbose_name="Facebook Domain Verification")
+
+    class Meta:
+        verbose_name = 'Site Ayarları'
+        verbose_name_plural = 'Site Ayarları'
+
+    def save(self, *args, **kwargs):
+        self.pk = 1  # Singleton pattern
+        super().save(*args, **kwargs)
+
+    @classmethod
+    def load(cls):
+        obj, created = cls.objects.get_or_create(pk=1)
+        return obj
+
+    def __str__(self):
+        return "Site Ayarları"
+

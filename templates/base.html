@@ -194,8 +194,136 @@
             }
         }
     </script>
+    <!-- Analytics Blocks -->
+    {% block analytics_head %}
+    <!-- Google Tag Manager -->
+    {% if site_settings.gtm_id %}
+    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+    })(window,document,'script','dataLayer','{{ site_settings.gtm_id }}');</script>
+    {% endif %}
+    <!-- End Google Tag Manager -->
+
+    <!-- Google Analytics 4 -->
+    {% if site_settings.ga4_id %}
+    <script async src="https://www.googletagmanager.com/gtag/js?id={{ site_settings.ga4_id }}"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', '{{ site_settings.ga4_id }}');
+    </script>
+    {% endif %}
+    <!-- End Google Analytics 4 -->
+
+    <!-- Meta Pixel Code -->
+    {% if site_settings.pixel_id %}
+    <script>
+    !function(f,b,e,v,n,t,s)
+    {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+    n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+    if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+    n.queue=[];t=b.createElement(e);t.async=!0;
+    t.src=v;s=b.getElementsByTagName(e)[0];
+    s.parentNode.insertBefore(t,s)}(window, document,'script',
+    'https://connect.facebook.net/en_US/fbevents.js');
+    fbq('init', '{{ site_settings.pixel_id }}');
+    fbq('track', 'PageView');
+    </script>
+    <noscript><img height="1" width="1" style="display:none"
+    src="https://www.facebook.com/tr?id={{ site_settings.pixel_id }}&ev=PageView&noscript=1"
+    /></noscript>
+    {% endif %}
+    <!-- End Meta Pixel Code -->
+
+    <!-- Hotjar Tracking Code -->
+    {% if site_settings.hotjar_id %}
+    <script>
+        (function(h,o,t,j,a,r){
+            h.hj=h.hj||function(){(h.hj.q=h.hj.q||[]).push(arguments)};
+            h._hjSettings={hjid:{{ site_settings.hotjar_id }},hjsv:6};
+            a=o.getElementsByTagName('head')[0];
+            r=o.createElement('script');r.async=1;
+            r.src=t+h._hjSettings.hjid+j+h._hjSettings.hjsv;
+            a.appendChild(r);
+        })(window,document,'https://static.hotjar.com/c/hotjar-','.js?sv=');
+    </script>
+    {% endif %}
+
+    <!-- Content Square -->
+    {% if site_settings.contentsquare_id %}
+    <script type="text/javascript">
+    (function() {
+      window._uxa = window._uxa || [];
+      var mt = document.createElement("script"); mt.type = "text/javascript"; mt.async = true;
+      mt.src = "//t.contentsquare.net/uxa/{{ site_settings.contentsquare_id }}.js";
+      document.getElementsByTagName("head")[0].appendChild(mt);
+    })();
+    </script>
+    {% endif %}
+
+    <!-- One Signal -->
+    {% if site_settings.onesignal_app_id %}
+    <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+    <script>
+      window.OneSignalDeferred = window.OneSignalDeferred || [];
+      OneSignalDeferred.push(function(OneSignal) {
+        OneSignal.init({
+          appId: "{{ site_settings.onesignal_app_id }}",
+        });
+      });
+    </script>
+    {% endif %}
+
+    <!-- Facebook Domain Verification -->
+    {% if site_settings.facebook_domain_verification %}
+    <meta name="facebook-domain-verification" content="{{ site_settings.facebook_domain_verification }}" />
+    {% endif %}
+    {% endblock %}
+    
+    <!-- Helper for Analytics Events -->
+    <script>
+        window.trackEvent = function(eventName, params = {}) {
+            console.log('Analytics Event:', eventName, params);
+            
+            // Push to DataLayer (GTM / GA4)
+            window.dataLayer = window.dataLayer || [];
+            window.dataLayer.push({
+                'event': eventName,
+                ...params
+            });
+
+            // Meta Pixel
+            if (typeof fbq === 'function') {
+                // Map standard events if needed, or pass custom
+                // Simple mapping for demonstration:
+                const standardEvents = [
+                    'ViewContent', 'Search', 'AddToCart', 'AddToWishlist', 
+                    'InitiateCheckout', 'AddPaymentInfo', 'Purchase', 'Lead', 
+                    'CompleteRegistration'
+                ];
+                
+                if (standardEvents.includes(eventName)) {
+                    fbq('track', eventName, params);
+                } else {
+                    fbq('trackCustom', eventName, params);
+                }
+            }
+        }
+    </script>
 </head>
 <body class="bg-gray-50 text-gray-800 font-sans antialiased relative">
+    {% block analytics_body %}
+    <!-- Google Tag Manager (noscript) -->
+    {% if site_settings.gtm_id %}
+    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id={{ site_settings.gtm_id }}"
+    height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+    {% endif %}
+    <!-- End Google Tag Manager (noscript) -->
+    {% endblock %}
+
     <!-- Animated Gradient Background -->
     <div class="fixed inset-0 animated-gradient opacity-5 pointer-events-none"></div>
     

@@ -6,6 +6,7 @@ from .views import products as product_views
 from .views import orders as order_views
 from .views import reports as report_views
 from .views import sizes as size_views
+from .views import settings as settings_views
 
 urlpatterns = [
     # Authentication
@@ -14,6 +15,9 @@ urlpatterns = [
     
     # Dashboard
     path('', dashboard_views.dashboard, name='admin_dashboard'),
+
+    # Settings
+    path('settings/', settings_views.settings_view, name='admin_settings'),
     
     # Campaigns
     path('campaigns/', campaign_views.campaign_list, name='admin_campaigns'),

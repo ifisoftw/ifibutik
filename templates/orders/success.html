@@ -315,3 +315,19 @@
     }
 </style>
 {% endblock %}
+
+{% block extra_scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        trackEvent('Purchase', {
+            content_name: '{{ order.campaign.title|escapejs }}',
+            content_ids: ['{{ order.campaign.id }}'],
+            content_type: 'product_group',
+            value: {{ order.total_amount|stringformat:".2f" }},
+            currency: 'TRY',
+            order_id: '{{ order.order_number }}',
+            num_items: {{ order.items.count }}
+        });
+    });
+</script>
+{% endblock %}

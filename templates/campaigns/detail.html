@@ -279,7 +279,7 @@
                         </div>
 
                         <!-- Zoom Button (Sol Alt Köşe - Her Zaman Görünür) -->
-                        <button @click.stop="openLightbox([{% for img in cp.product.images.all %}'{{ img.image.url }}',{% endfor %}])" 
+                        <button @click.stop="openLightbox([{% for img in cp.product.images.all %}'{{ img.image.url }}',{% endfor %}]); trackEvent('AddToWishlist', {content_name: '{{ cp.product.name|escapejs }}', content_ids: ['{{ cp.product.id }}'], content_type: 'product', value: {{ campaign.price }}, currency: 'TRY'})" 
                                 class="absolute bottom-1.5 left-1.5 z-30 bg-black/50 backdrop-blur-md p-1.5 rounded-md text-white hover:bg-brand-pink hover:scale-110 transition-all duration-300 shadow-md">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"></path></svg>
                         </button>
@@ -433,7 +433,7 @@
             <div class="grid grid-cols-2 gap-3">
                 {% for size in campaign.available_sizes.all %}
                 <button type="button" 
-                        @click="commonSize = '{{ size.slug }}'"
+                        @click="commonSize = '{{ size.slug }}'; trackEvent('CustomizeProduct', {content_name: '{{ campaign.title|escapejs }}', content_ids: ['{{ campaign.id }}'], content_type: 'product_group', variant: '{{ size.name }}'})"
                         x-ripple
                         class="py-3.5 px-2 border-2 rounded-xl text-sm font-bold transition-all active:scale-95 relative overflow-hidden group"
                         :class="commonSize === '{{ size.slug }}' ? 'border-brand-pink text-white bg-gradient-to-r from-brand-pink to-brand-purple shadow-lg transform scale-105' : 'border-gray-200 text-gray-600 bg-white hover:border-gray-300'">
@@ -492,7 +492,9 @@
                     <div class="space-y-3">
                          <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider ml-1">Kişisel Bilgiler</label>
                          <div class="grid grid-cols-2 gap-3">
-                             <input type="text" name="first_name" placeholder="İsim *" required class="w-full rounded-xl border-gray-200 shadow-sm focus:border-brand-pink focus:ring-2 focus:ring-pink-200 py-3.5 px-4 text-sm transition-all hover:border-gray-300">
+                             <input type="text" name="first_name" placeholder="İsim *" required 
+                                    @blur="if($el.value.length > 2) trackEvent('InitiatePurchase', {content_name: '{{ campaign.title|escapejs }}', content_ids: ['{{ campaign.id }}'], value: {{ campaign.price }}, currency: 'TRY'})"
+                                    class="w-full rounded-xl border-gray-200 shadow-sm focus:border-brand-pink focus:ring-2 focus:ring-pink-200 py-3.5 px-4 text-sm transition-all hover:border-gray-300">
                              <input type="text" name="last_name" placeholder="Soyisim *" required class="w-full rounded-xl border-gray-200 shadow-sm focus:border-brand-pink focus:ring-2 focus:ring-pink-200 py-3.5 px-4 text-sm transition-all hover:border-gray-300">
                          </div>
                          <input type="tel" name="phone" placeholder="Telefon Numarası *" required class="w-full rounded-xl border-gray-200 shadow-sm focus:border-brand-pink focus:ring-2 focus:ring-pink-200 py-3.5 px-4 text-sm transition-all hover:border-gray-300">
@@ -531,7 +533,9 @@
                                  <option value="">Mahalle Seçin</option>
                              </select>
 
-                             <textarea name="address_detail" rows="3" placeholder="Adres Detayı *" required class="w-full rounded-xl border-gray-200 shadow-sm focus:border-brand-pink focus:ring-2 focus:ring-pink-200 py-3.5 px-4 text-sm transition-all hover:border-gray-300"></textarea>
+                             <textarea name="address_detail" rows="3" placeholder="Adres Detayı *" required 
+                                       @blur="if($el.value.length > 5) trackEvent('AddPaymentInfo', {content_name: '{{ campaign.title|escapejs }}', content_ids: ['{{ campaign.id }}'], value: {{ campaign.price }}, currency: 'TRY', payment_type: 'COD'})"
+                                       class="w-full rounded-xl border-gray-200 shadow-sm focus:border-brand-pink focus:ring-2 focus:ring-pink-200 py-3.5 px-4 text-sm transition-all hover:border-gray-300"></textarea>
                          </div>
                     </div>
                 </div>
@@ -718,6 +722,15 @@ function campaignStore() {
             window.addEventListener('scroll', () => {
                 this.showStickyProgress = window.scrollY > 150;
             });
+
+            // ViewContent Event on Load
+            trackEvent('ViewContent', {
+                content_name: '{{ campaign.title|escapejs }}',
+                content_ids: ['{{ campaign.id }}'],
+                content_type: 'product_group',
+                value: {{ campaign.price }},
+                currency: 'TRY'
+            });
         },
         
         // Lightbox State
@@ -772,6 +785,15 @@ function campaignStore() {
                         this.selectedProducts[emptyIndex] = product;
                         this.totalSelected++;
                         
+                        // Track AddToCart
+                        trackEvent('AddToCart', {
+                            content_name: product.name,
+                            content_ids: [product.id],
+                            content_type: 'product',
+                            value: {{ campaign.price|div:campaign.min_quantity|floatformat:2 }},
+                            currency: 'TRY'
+                        });
+
                         // Eğer son ürün seçildiyse otomatik kaydır
                         if (this.totalSelected >= this.minQty) {
                             setTimeout(() => {
