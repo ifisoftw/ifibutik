@@ -4,166 +4,320 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sipariş Yazdırma</title>
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
         @media print {
-            .no-print { display: none; }
+            @page {
+                size: 100mm 100mm;
+                margin: 0;
+            }
+            body {
+                margin: 0;
+                padding: 0;
+            }
+            .no-print { display: none !important; }
             .page-break { page-break-after: always; }
         }
+
+        * {
+            box-sizing: border-box;
+        }
+
         body {
-            font-family: Arial, sans-serif;
-            line-height: 1.6;
-            color: #333;
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        .order-container {
-            border: 1px solid #ddd;
-            padding: 20px;
-            margin-bottom: 30px;
-            border-radius: 8px;
-        }
-        .order-header {
-            border-bottom: 2px solid #333;
-            padding-bottom: 15px;
-            margin-bottom: 20px;
-        }
-        .order-title {
-            font-size: 24px;
-            font-weight: bold;
-            color: #333;
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
             margin: 0;
+            padding: 20px;
+            color: #111827;
         }
-        .order-info {
+
+        .print-container {
+            width: 100mm;
+            height: 100mm;
+            background: white;
+            margin: 0 auto 20px;
+            padding: 5mm;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #e5e7eb;
+            margin-bottom: 8px;
+        }
+
+        .order-id {
+            font-size: 14px;
+            font-weight: 800;
+        }
+
+        .order-date {
+            font-size: 10px;
+            color: #6b7280;
+        }
+
+        /* Info Section */
+        .info-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            margin-bottom: 20px;
+            grid-template-columns: 1fr auto;
+            gap: 10px;
+            margin-bottom: 8px;
+            background: #f9fafb;
+            padding: 8px;
+            border-radius: 6px;
         }
-        .info-section {
-            padding: 10px;
-            background: #f9f9f9;
-            border-radius: 4px;
+
+        .customer-details {
+            font-size: 10px;
+            line-height: 1.4;
         }
-        .info-section h3 {
-            margin: 0 0 10px 0;
-            color: #555;
-            font-size: 14px;
-            text-transform: uppercase;
+
+        .detail-row {
+            display: flex;
+            margin-bottom: 2px;
         }
-        .info-section p {
-            margin: 5px 0;
-            font-size: 14px;
+
+        .detail-label {
+            width: 70px;
+            color: #6b7280;
+            flex-shrink: 0;
         }
-        .items-table {
+
+        .detail-value {
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 180px;
+        }
+
+        .barcode-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: white;
+            padding: 2px;
+        }
+
+        .barcode-container svg {
+            height: 40px;
+            width: 100%;
+            max-width: 120px;
+        }
+
+        /* Products Table */
+        .products-table {
             width: 100%;
             border-collapse: collapse;
-            margin: 20px 0;
+            font-size: 9px;
+            margin-bottom: 8px;
         }
-        .items-table th {
-            background: #f0f0f0;
-            padding: 10px;
+
+        .products-table th {
+            background: #f3f4f6;
+            padding: 4px;
             text-align: left;
-            font-weight: bold;
-            border: 1px solid #ddd;
+            font-weight: 600;
+            color: #4b5563;
+            border-bottom: 1px solid #e5e7eb;
         }
-        .items-table td {
-            padding: 10px;
-            border: 1px solid #ddd;
+
+        .products-table td {
+            padding: 4px;
+            border-bottom: 1px solid #f3f4f6;
+            vertical-align: top;
         }
-        .total-section {
-            text-align: right;
-            margin-top: 20px;
-            padding-top: 20px;
-            border-top: 2px solid #ddd;
+
+        .product-name {
+            font-weight: 500;
+            margin-bottom: 1px;
         }
-        .total-amount {
-            font-size: 20px;
-            font-weight: bold;
-            color: #333;
+
+        .product-variant {
+            color: #6b7280;
+            font-size: 8px;
         }
-        .print-button {
-            background: #4CAF50;
+
+        /* Footer */
+        .footer {
+            margin-top: auto;
+            background: #f9fafb;
+            padding: 6px;
+            border-radius: 6px;
+        }
+
+        .totals-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 4px;
+            text-align: center;
+            margin-bottom: 6px;
+            font-size: 9px;
+            border-bottom: 1px dashed #d1d5db;
+            padding-bottom: 6px;
+        }
+
+        .total-item label {
+            display: block;
+            color: #6b7280;
+            font-size: 8px;
+            margin-bottom: 1px;
+        }
+
+        .total-item span {
+            font-weight: 700;
+            color: #111827;
+        }
+
+        .address-box {
+            font-size: 9px;
+            line-height: 1.3;
+            color: #4b5563;
+        }
+
+        .address-title {
+            font-weight: 700;
+            color: #111827;
+            margin-bottom: 1px;
+            font-size: 9px;
+        }
+
+        /* Print Button */
+        .print-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #2563eb;
             color: white;
-            padding: 10px 20px;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
             border: none;
-            border-radius: 4px;
             cursor: pointer;
-            font-size: 16px;
-            margin-bottom: 20px;
+            box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.3);
+            z-index: 100;
+            transition: all 0.2s;
         }
-        .print-button:hover {
-            background: #45a049;
+
+        .print-btn:hover {
+            background: #1d4ed8;
+            transform: translateY(-1px);
         }
     </style>
 </head>
 <body>
-    <button class="print-button no-print" onclick="window.print()">Yazdır</button>
-    
+    <button class="print-btn no-print" onclick="window.print()">
+        Yazdır
+    </button>
+
     {% for order in orders %}
-    <div class="order-container {% if not forloop.last %}page-break{% endif %}">
-        <div class="order-header">
-            <h1 class="order-title">Sipariş #{{ order.id }}</h1>
-            <p style="margin: 5px 0; color: #666;">Tarih: {{ order.created_at|date:"d.m.Y H:i" }}</p>
+    <div class="print-container {% if not forloop.last %}page-break{% endif %}">
+        <!-- Header -->
+        <div class="header">
+            <div class="order-id">Sipariş #{{ order.id }}</div>
+            <div class="order-date">{{ order.created_at|date:"d.m.Y H:i" }}</div>
         </div>
-        
-        <div class="order-info">
-            <div class="info-section">
-                <h3>Müşteri Bilgileri</h3>
-                <p><strong>Ad Soyad:</strong> {{ order.customer_name }}</p>
-                <p><strong>Telefon:</strong> {{ order.phone }}</p>
-                <p><strong>Adres:</strong> {{ order.full_address }}</p>
-                <p><strong>İl/İlçe:</strong> {{ order.city }} / {{ order.district }}</p>
+
+        <!-- Info Grid -->
+        <div class="info-grid">
+            <div class="customer-details">
+                <div class="detail-row">
+                    <span class="detail-label">Müşteri:</span>
+                    <span class="detail-value">{{ order.customer_name }}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Telefon:</span>
+                    <span class="detail-value">{{ order.phone }}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Kampanya:</span>
+                    <span class="detail-value">{{ order.campaign.title|default:"-"|truncatechars:25 }}</span>
+                </div>
+                {% if order.items.first.selected_size %}
+                <div class="detail-row">
+                    <span class="detail-label">Beden:</span>
+                    <span class="detail-value">{{ order.items.first.selected_size }}</span>
+                </div>
+                {% endif %}
             </div>
-            
-            <div class="info-section">
-                <h3>Sipariş Bilgileri</h3>
-                <p><strong>Kampanya:</strong> {{ order.campaign.title|default:"—" }}</p>
-                <p><strong>Durum:</strong> {{ order.get_status_display }}</p>
-                {% if order.cargo_firm %}
-                <p><strong>Kargo:</strong> {{ order.cargo_firm }}</p>
-                {% endif %}
-                {% if order.tracking_code %}
-                <p><strong>Takip No:</strong> {{ order.tracking_code }}</p>
-                {% endif %}
+            <div class="barcode-container">
+                <svg class="barcode"
+                     jsbarcode-format="CODE128"
+                     jsbarcode-value="{{ order.id }}"
+                     jsbarcode-textmargin="0"
+                     jsbarcode-fontoptions="bold"
+                     jsbarcode-height="30"
+                     jsbarcode-width="1.5"
+                     jsbarcode-displayvalue="false">
+                </svg>
             </div>
         </div>
-        
-        <h3 style="margin-top: 30px;">Sipariş Detayları</h3>
-        <table class="items-table">
+
+        <!-- Products -->
+        <table class="products-table">
             <thead>
                 <tr>
-                    <th>Ürün</th>
-                    <th>Beden</th>
-                    <th>Adet</th>
+                    <th width="50%">Ürün Adı</th>
+                    <th width="30%">Stok Kodu</th>
+                    <th width="20%" style="text-align: right">Beden</th>
                 </tr>
             </thead>
             <tbody>
                 {% for item in order.items.all %}
                 <tr>
-                    <td>{{ item.product.name }}</td>
-                    <td>{{ item.selected_size|default:"—" }}</td>
-                    <td>{{ item.quantity }}</td>
+                    <td>
+                        <div class="product-name">{{ item.product.name|truncatechars:35 }}</div>
+                    </td>
+                    <td>{{ item.product.sku|default:"-" }}</td>
+                    <td style="text-align: right">{{ item.selected_size|default:"-" }}</td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
-        
-        <div class="total-section">
-            <p>Kampanya Fiyatı: ₺{{ order.campaign_price|floatformat:2 }}</p>
-            <p>Kargo Ücreti: ₺{{ order.cargo_price|floatformat:2 }}</p>
-            {% if order.cod_fee %}
-            <p>Kapıda Ödeme: ₺{{ order.cod_fee|floatformat:2 }}</p>
-            {% endif %}
-            <p class="total-amount">Toplam: ₺{{ order.total_amount|floatformat:2 }}</p>
+
+        <!-- Footer -->
+        <div class="footer">
+            <div class="totals-grid">
+                <div class="total-item">
+                    <label>Kampanya</label>
+                    <span>₺{{ order.campaign_price|floatformat:2 }}</span>
+                </div>
+                <div class="total-item">
+                    <label>Kargo</label>
+                    <span>₺{{ order.cargo_price|floatformat:2 }}</span>
+                </div>
+                <div class="total-item">
+                    <label>Kapıda Öd.</label>
+                    <span>₺{{ order.cod_fee|floatformat:2 }}</span>
+                </div>
+                <div class="total-item">
+                    <label>Toplam</label>
+                    <span>₺{{ order.total_amount|floatformat:2 }}</span>
+                </div>
+            </div>
+            
+            <div class="address-box">
+                <div class="address-title">Teslimat Adresi:</div>
+                {{ order.full_address }}, {{ order.neighborhood_fk.name|default:"" }}, {{ order.district_fk.name|default:order.district }} / {{ order.city_fk.name|default:order.city }}
+            </div>
         </div>
     </div>
     {% endfor %}
-    
+
     <script>
-        // Auto print on load
         window.onload = function() {
-            // Uncomment to auto-print
+            JsBarcode(".barcode").init();
+            // Optional: Auto print
             // window.print();
         }
     </script>

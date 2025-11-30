@@ -8,6 +8,7 @@ import json
 import csv
 from orders.models import Order, OrderItem
 from campaigns.models import Campaign
+from products.models import Product
 from admin_panel.decorators import admin_required
 from urllib.parse import urlencode
 
@@ -46,6 +47,10 @@ def order_list(request):
     campaign_id = request.GET.get('campaign', '')
     if campaign_id:
         orders = orders.filter(campaign_id=campaign_id)
+
+    product_id = request.GET.get('product', '')
+    if product_id:
+        orders = orders.filter(items__product_id=product_id)
 
     search = request.GET.get('search', '').strip()
     if search:
@@ -119,6 +124,8 @@ def order_list(request):
         'query_string': base_query,
         'status_choices': Order.STATUS_CHOICES,
         'campaigns': Campaign.objects.filter(is_active=True).order_by('title'),
+        'products': Product.objects.filter(is_active=True).order_by('name'),
+        'product_id': product_id,
         'available_sizes': available_sizes,
         'per_page_options': [10, 20, 30, 50],
         'stats': stats,  # İstatistikler eklendi
@@ -256,7 +263,7 @@ def order_print_view(request):
         return HttpResponse('Yazdırılacak sipariş bulunamadı', status=404)
     
     orders = Order.objects.filter(id__in=order_ids).select_related(
-        'campaign'
+        'campaign', 'city_fk', 'district_fk', 'neighborhood_fk'
     ).prefetch_related('items__product')
     
     return render(request, 'admin_panel/orders/print.html', {
