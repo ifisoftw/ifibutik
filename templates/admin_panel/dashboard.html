@@ -105,9 +105,21 @@
     
     <!-- Canlı Satış Grafiği (2 column span) -->
     <div class="lg:col-span-2 glass-card rounded-2xl p-6 hover-lift">
-        <div class="mb-4">
-            <h2 class="text-lg font-bold text-gray-900">Canlı Satış Performansı</h2>
-            <p class="text-sm text-gray-500">Saatlik net ciro grafiği</p>
+        <div class="flex items-center justify-between mb-4">
+            <div>
+                <h2 class="text-lg font-bold text-gray-900">Satış Performansı</h2>
+                <p class="text-sm text-gray-500" id="chart-subtitle">Saatlik ciro grafiği</p>
+            </div>
+            <div class="flex bg-gray-100 p-1 rounded-lg">
+                <button onclick="updateChart('hourly')" id="btn-hourly" 
+                        class="px-3 py-1.5 text-xs font-semibold rounded-md transition-all shadow-sm bg-white text-gray-900">
+                    Saatlik
+                </button>
+                <button onclick="updateChart('cumulative')" id="btn-cumulative" 
+                        class="px-3 py-1.5 text-xs font-semibold rounded-md transition-all text-gray-500 hover:text-gray-900">
+                    Kümülatif
+                </button>
+            </div>
         </div>
         <div id="sales-chart"></div>
     </div>
@@ -150,12 +162,12 @@
 </div>
 
 <!-- Performance Tables -->
-<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
     
     <!-- Kampanya Satış Performansı -->
     <div class="glass-card rounded-2xl">
         <div class="px-6 py-4 border-b border-gray-200">
-            <h2 class="text-lg font-bold text-gray-900">Kampanya Satış Performansı</h2>
+            <h2 class="text-lg font-bold text-gray-900">Kampanya Performansı</h2>
             <p class="text-sm text-gray-500">Günlük en iyi kampanyalar</p>
         </div>
         <div class="p-6">
@@ -186,7 +198,7 @@
     <!-- Ürün Satış Performansı -->
     <div class="glass-card rounded-2xl">
         <div class="px-6 py-4 border-b border-gray-200">
-            <h2 class="text-lg font-bold text-gray-900">Ürün Satış Performansı</h2>
+            <h2 class="text-lg font-bold text-gray-900">Ürün Performansı</h2>
             <p class="text-sm text-gray-500">En çok satan ürünler</p>
         </div>
         <div class="p-6">
@@ -206,7 +218,7 @@
                     </div>
                     <div class="text-right">
                         <p class="text-lg font-bold text-gray-900">{{ product.sales_count }}</p>
-                        <p class="text-xs text-gray-500">Net Satış Adedi</p>
+                        <p class="text-xs text-gray-500">Adet</p>
                     </div>
                 </div>
                 {% empty %}
@@ -215,102 +227,7 @@
             </div>
         </div>
     </div>
-    
-</div>
 
-<!-- Saatlik Satış Farkı -->
-<div class="bg-white rounded-xl shadow-sm border border-gray-200 mb-6">
-    <div class="px-6 py-4 border-b border-gray-200">
-        <h2 class="text-lg font-bold text-gray-900">Saatlik Satış Farkı</h2>
-        <p class="text-sm text-gray-500">Bugün vs Dün</p>
-    </div>
-    <div class="overflow-x-auto">
-        <table class="w-full">
-            <thead class="bg-gray-50">
-                <tr>
-                    <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Saat</th>
-                    <th class="px-6 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">Müşteri</th>
-                    <th class="px-6 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">DÜN</th>
-                    <th class="px-6 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">BUGÜN</th>
-                    <th class="px-6 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">Fark</th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-200">
-                {% for hour_data in hourly_comparison %}
-                <tr class="hover:bg-gray-50">
-                    <td class="px-6 py-3 text-sm font-medium text-gray-900">{{ hour_data.hour }}</td>
-                    <td class="px-6 py-3 text-center text-sm text-gray-900">{{ hour_data.today_orders }}</td>
-                    <td class="px-6 py-3 text-center text-sm text-gray-600">₺{{ hour_data.yesterday_total|floatformat:0 }}</td>
-                    <td class="px-6 py-3 text-center text-sm font-semibold text-gray-900">₺{{ hour_data.today_total|floatformat:0 }}</td>
-                    <td class="px-6 py-3 text-center">
-                        <span class="inline-flex items-center gap-1 text-sm font-semibold
-                            {% if hour_data.trend == 'up' %}text-green-600{% elif hour_data.trend == 'down' %}text-red-600{% else %}text-gray-500{% endif %}">
-                            {% if hour_data.trend == 'up' %}
-                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 7.414V15a1 1 0 11-2 0V7.414L6.707 9.707a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
-                            </svg>
-                            +{{ hour_data.change_percent|floatformat:0 }}%
-                            {% elif hour_data.trend == 'down' %}
-                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M14.707 10.293a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L9 12.586V5a1 1 0 012 0v7.586l2.293-2.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
-                            </svg>
-                            {{ hour_data.change_percent|floatformat:0 }}%
-                            {% else %}
-                            --
-                            {% endif %}
-                        </span>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-</div>
-
-<!-- Son Siparişler ve Şehir Performansı -->
-<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-    
-    <!-- Son Siparişler -->
-    <div class="glass-card rounded-2xl">
-        <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
-            <div>
-                <h2 class="text-lg font-bold text-gray-900">Son Siparişler</h2>
-                <p class="text-sm text-gray-500">En son gelen siparişler</p>
-            </div>
-            <span class="px-3 py-1 bg-red-100 text-red-700 rounded-full text-xs font-semibold">
-                {{ pending_orders_count }} Bekleyen
-            </span>
-        </div>
-        <div class="p-6">
-            <div class="space-y-3">
-                {% for order in recent_orders %}
-                <div class="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:border-primary transition-colors cursor-pointer"
-                     hx-get="{% url 'admin_order_detail' order.id %}"
-                     hx-target="#modal-container"
-                     hx-swap="innerHTML">
-                    <div class="flex-1 min-w-0">
-                        <p class="font-semibold text-gray-900 text-sm">#{{ order.id }} - {{ order.customer_name }}</p>
-                        <p class="text-xs text-gray-500">{{ order.campaign.title }}</p>
-                        <p class="text-xs text-gray-400">{{ order.created_at|date:"d.m.Y H:i" }}</p>
-                    </div>
-                    <div class="text-right">
-                        <p class="text-sm font-bold text-gray-900">₺{{ order.total_amount|floatformat:0 }}</p>
-                        <span class="inline-block px-2 py-1 text-xs font-semibold rounded-full
-                            {% if order.status == 'new' %}bg-yellow-100 text-yellow-700{% endif %}
-                            {% if order.status == 'processing' %}bg-blue-100 text-blue-700{% endif %}
-                            {% if order.status == 'shipped' %}bg-purple-100 text-purple-700{% endif %}
-                            {% if order.status == 'delivered' %}bg-green-100 text-green-700{% endif %}">
-                            {{ order.get_status_display }}
-                        </span>
-                    </div>
-                </div>
-                {% empty %}
-                <p class="text-center text-gray-400 py-8">Henüz sipariş yok</p>
-                {% endfor %}
-            </div>
-        </div>
-    </div>
-    
     <!-- Şehir Performansı -->
     <div class="glass-card rounded-2xl">
         <div class="px-6 py-4 border-b border-gray-200">
@@ -341,6 +258,101 @@
     
 </div>
 
+<!-- Detailed Lists Row -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+
+    <!-- Saatlik Satış Farkı -->
+    <div class="glass-card rounded-2xl flex flex-col h-[500px]">
+        <div class="px-6 py-4 border-b border-gray-200 flex-none">
+            <h2 class="text-lg font-bold text-gray-900">Saatlik Satış Farkı</h2>
+            <p class="text-sm text-gray-500">Bugün vs Dün</p>
+        </div>
+        <div class="overflow-y-auto flex-1 custom-scrollbar">
+            <table class="w-full relative">
+                <thead class="bg-gray-50 sticky top-0 z-10">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider bg-gray-50">Saat</th>
+                        <th class="px-6 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider bg-gray-50">Sipariş</th>
+                        <th class="px-6 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider bg-gray-50">DÜN</th>
+                        <th class="px-6 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider bg-gray-50">BUGÜN</th>
+                        <th class="px-6 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider bg-gray-50">Fark</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200">
+                    {% for hour_data in hourly_comparison %}
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-6 py-3 text-sm font-medium text-gray-900">{{ hour_data.hour }}</td>
+                        <td class="px-6 py-3 text-center text-sm text-gray-900">{{ hour_data.today_orders }}</td>
+                        <td class="px-6 py-3 text-center text-sm text-gray-600">₺{{ hour_data.yesterday_total|floatformat:0 }}</td>
+                        <td class="px-6 py-3 text-center text-sm font-semibold text-gray-900">₺{{ hour_data.today_total|floatformat:0 }}</td>
+                        <td class="px-6 py-3 text-center">
+                            <span class="inline-flex items-center gap-1 text-sm font-semibold
+                                {% if hour_data.trend == 'up' %}text-green-600{% elif hour_data.trend == 'down' %}text-red-600{% else %}text-gray-500{% endif %}">
+                                {% if hour_data.trend == 'up' %}
+                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 7.414V15a1 1 0 11-2 0V7.414L6.707 9.707a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
+                                </svg>
+                                +{{ hour_data.change_percent|floatformat:0 }}%
+                                {% elif hour_data.trend == 'down' %}
+                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M14.707 10.293a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L9 12.586V5a1 1 0 012 0v7.586l2.293-2.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                                </svg>
+                                {{ hour_data.change_percent|floatformat:0 }}%
+                                {% else %}
+                                --
+                                {% endif %}
+                            </span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <!-- Son Siparişler -->
+    <div class="glass-card rounded-2xl flex flex-col h-[500px]">
+        <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-none">
+            <div>
+                <h2 class="text-lg font-bold text-gray-900">Son Siparişler</h2>
+                <p class="text-sm text-gray-500">En son gelen siparişler</p>
+            </div>
+            <span class="px-3 py-1 bg-red-100 text-red-700 rounded-full text-xs font-semibold">
+                {{ pending_orders_count }} Bekleyen
+            </span>
+        </div>
+        <div class="p-6 overflow-y-auto flex-1 custom-scrollbar">
+            <div class="space-y-3">
+                {% for order in recent_orders %}
+                <div class="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:border-primary transition-colors cursor-pointer"
+                     hx-get="{% url 'admin_order_detail' order.id %}"
+                     hx-target="#modal-container"
+                     hx-swap="innerHTML">
+                    <div class="flex-1 min-w-0">
+                        <p class="font-semibold text-gray-900 text-sm">#{{ order.id }} - {{ order.customer_name }}</p>
+                        <p class="text-xs text-gray-500">{{ order.campaign.title }}</p>
+                        <p class="text-xs text-gray-400">{{ order.created_at|date:"d.m.Y H:i" }}</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-sm font-bold text-gray-900">₺{{ order.total_amount|floatformat:0 }}</p>
+                        <span class="inline-block px-2 py-1 text-xs font-semibold rounded-full
+                            {% if order.status == 'new' %}bg-yellow-100 text-yellow-700{% endif %}
+                            {% if order.status == 'processing' %}bg-blue-100 text-blue-700{% endif %}
+                            {% if order.status == 'shipped' %}bg-purple-100 text-purple-700{% endif %}
+                            {% if order.status == 'delivered' %}bg-green-100 text-green-700{% endif %}">
+                            {{ order.get_status_display }}
+                        </span>
+                    </div>
+                </div>
+                {% empty %}
+                <p class="text-center text-gray-400 py-8">Henüz sipariş yok</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    
+</div>
+
 <!-- Confirm Dialog Component -->
 {% include 'admin_panel/components/confirm_dialog.html' %}
 
@@ -351,86 +363,47 @@
     // ApexCharts Configuration
     const chartData = {{ chart_data|safe }};
     
-    const options = {
-        series: [{
-            name: 'Bugün',
-            data: chartData.today
-        }, {
-            name: 'Dün',
-            data: chartData.yesterday
-        }],
+    // Base options
+    const baseOptions = {
         chart: {
             type: 'area',
             height: 350,
-            toolbar: {
-                show: false
-            },
-            zoom: {
-                enabled: false
-            },
+            toolbar: { show: false },
+            zoom: { enabled: false },
             animations: {
                 enabled: true,
                 easing: 'easeinout',
                 speed: 800
             },
-            fontFamily: 'Inter, sans-serif',
-            offsetX: 0,
-            offsetY: 0
+            fontFamily: 'Inter, sans-serif'
         },
-        colors: ['#E91E63', '#9CA3AF'],
         stroke: {
             curve: 'smooth',
-            width: 2,
-            lineCap: 'round'
+            width: 2
         },
         xaxis: {
             categories: chartData.labels,
             tickAmount: 24,
             labels: {
                 rotate: 0,
-                rotateAlways: false,
-                hideOverlappingLabels: true,
-                trim: false,
-                show: true,
-                showDuplicates: false,
-                style: {
-                    fontSize: '10px',
-                    fontWeight: 500,
-                    colors: '#6B7280'
-                },
-                formatter: function(value, timestamp, opts) {
-                    // Sadece 3 saatte bir göster (0, 3, 6, 9, 12, 15, 18, 21)
+                style: { fontSize: '10px', colors: '#6B7280' },
+                formatter: function(value) {
                     if (value && value.includes(':')) {
                         const hour = parseInt(value.split(':')[0]);
-                        if (hour % 1 === 0) {
-                            return value;
-                        }
-                        return '';
+                        return (hour % 3 === 0) ? value : '';
                     }
                     return value;
                 }
             },
-            axisBorder: {
-                show: true,
-                color: '#E5E7EB'
-            },
-            axisTicks: {
-                show: false
-            }
+            axisBorder: { show: true, color: '#E5E7EB' },
+            axisTicks: { show: false }
         },
         yaxis: {
             labels: {
                 formatter: function(value) {
-                    if (value >= 1000) {
-                        return '₺' + (value / 1000).toFixed(1) + 'k';
-                    }
-                    return '₺' + value.toFixed(0);
+                    return value >= 1000 ? '₺' + (value / 1000).toFixed(1) + 'k' : '₺' + value.toFixed(0);
                 },
-                style: {
-                    fontSize: '11px',
-                    fontWeight: 500,
-                    colors: '#6B7280'
-                }
+                style: { fontSize: '11px', colors: '#6B7280' }
             }
         },
         tooltip: {
@@ -443,52 +416,15 @@
             }
         },
         legend: {
-            show: true,
             position: 'top',
             horizontalAlign: 'left',
-            floating: false,
-            offsetY: 0,
-            offsetX: 0,
-            labels: {
-                colors: '#374151',
-                useSeriesColors: false
-            },
-            markers: {
-                width: 10,
-                height: 10,
-                radius: 10,
-                offsetX: 0,
-                offsetY: 0
-            },
-            itemMargin: {
-                horizontal: 12,
-                vertical: 5
-            },
             fontFamily: 'Inter, sans-serif',
-            fontSize: '12px',
             fontWeight: 600
         },
         grid: {
-            show: true,
             borderColor: '#e5e7eb',
             strokeDashArray: 4,
-            position: 'back',
-            xaxis: {
-                lines: {
-                    show: false
-                }
-            },
-            yaxis: {
-                lines: {
-                    show: true
-                }
-            },
-            padding: {
-                top: 10,
-                right: 20,
-                bottom: 10,
-                left: 10
-            }
+            padding: { top: 10, right: 20, bottom: 10, left: 10 }
         },
         fill: {
             type: 'gradient',
@@ -501,24 +437,66 @@
                 stops: [0, 100]
             }
         },
-        dataLabels: {
-            enabled: false
-        },
-        markers: {
-            size: 0,
-            hover: {
-                size: 6
-            }
-        }
+        dataLabels: { enabled: false }
     };
-    
-    const chart = new ApexCharts(document.querySelector("#sales-chart"), options);
+
+    // Initialize Chart
+    const chart = new ApexCharts(document.querySelector("#sales-chart"), {
+        ...baseOptions,
+        series: [{
+            name: 'Bugün',
+            data: chartData.today
+        }, {
+            name: 'Dün',
+            data: chartData.yesterday
+        }],
+        colors: ['#E91E63', '#9CA3AF']
+    });
     chart.render();
-    
-    // Auto-refresh every 30 seconds (commented out for now)
-    // setInterval(() => {
-    //     window.location.reload();
-    // }, 30000);
+
+    // Toggle Function
+    function updateChart(type) {
+        const btnHourly = document.getElementById('btn-hourly');
+        const btnCumulative = document.getElementById('btn-cumulative');
+        const subtitle = document.getElementById('chart-subtitle');
+
+        // Reset buttons
+        const activeClass = "bg-white text-gray-900 shadow-sm";
+        const inactiveClass = "text-gray-500 hover:text-gray-900";
+        
+        btnHourly.className = "px-3 py-1.5 text-xs font-semibold rounded-md transition-all " + inactiveClass;
+        btnCumulative.className = "px-3 py-1.5 text-xs font-semibold rounded-md transition-all " + inactiveClass;
+
+        if (type === 'hourly') {
+            btnHourly.className = "px-3 py-1.5 text-xs font-semibold rounded-md transition-all " + activeClass;
+            subtitle.textContent = "Saatlik ciro grafiği";
+            
+            chart.updateOptions({
+                series: [{
+                    name: 'Bugün',
+                    data: chartData.today
+                }, {
+                    name: 'Dün',
+                    data: chartData.yesterday
+                }],
+                colors: ['#E91E63', '#9CA3AF']
+            });
+        } else {
+            btnCumulative.className = "px-3 py-1.5 text-xs font-semibold rounded-md transition-all " + activeClass;
+            subtitle.textContent = "Artan ciro grafiği";
+            
+            chart.updateOptions({
+                series: [{
+                    name: 'Bugün (Kümülatif)',
+                    data: chartData.today_cumulative
+                }, {
+                    name: 'Dün (Kümülatif)',
+                    data: chartData.yesterday_cumulative
+                }],
+                colors: ['#8B5CF6', '#9CA3AF']
+            });
+        }
+    }
 </script>
 {% endblock %}
 

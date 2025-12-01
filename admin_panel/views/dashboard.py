@@ -83,8 +83,23 @@ def dashboard(request):
     chart_data = {
         'labels': hour_labels,
         'today': hours_today,
-        'yesterday': hours_yesterday
+        'yesterday': hours_yesterday,
+        'today_cumulative': [],
+        'yesterday_cumulative': []
     }
+    
+    # Calculate cumulative data
+    current_total_today = 0
+    current_total_yesterday = 0
+    
+    for i in range(24):
+        # Today
+        current_total_today += hours_today[i]
+        chart_data['today_cumulative'].append(current_total_today)
+        
+        # Yesterday
+        current_total_yesterday += hours_yesterday[i]
+        chart_data['yesterday_cumulative'].append(current_total_yesterday)
     
     # ====== Kampanya Performansı ======
     campaign_performance = Campaign.objects.filter(
