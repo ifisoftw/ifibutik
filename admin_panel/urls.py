@@ -32,6 +32,12 @@ urlpatterns = [
     path('campaigns/<int:pk>/products/search/', campaign_views.campaign_product_search, name='admin_campaign_product_search'),
     path('campaigns/<int:pk>/products/add/', campaign_views.campaign_product_add, name='admin_campaign_product_add'),
     
+    # Campaign Redirects
+    path('campaigns/validate-slug/', campaign_views.campaign_validate_slug, name='admin_campaign_validate_slug'),
+    path('campaigns/<int:pk>/redirects/', campaign_views.campaign_redirect_list, name='admin_campaign_redirects'),
+    path('campaigns/<int:pk>/redirects/add/', campaign_views.campaign_redirect_add, name='admin_campaign_redirect_add'),
+    path('campaigns/redirects/<int:redirect_id>/delete/', campaign_views.campaign_redirect_delete, name='admin_campaign_redirect_delete'),
+    
     # Products
     path('products/', product_views.product_list, name='admin_products'),
     path('products/create/', product_views.product_create_modal, name='admin_product_create'),

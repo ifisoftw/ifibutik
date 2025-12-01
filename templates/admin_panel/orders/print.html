@@ -243,10 +243,10 @@
                     <span class="detail-label">Kampanya:</span>
                     <span class="detail-value">{{ order.campaign.title|default:"-"|truncatechars:25 }}</span>
                 </div>
-                {% if order.items.first.selected_size %}
+                {% if order.items.first.selected_size_name or order.items.first.selected_size %}
                 <div class="detail-row">
                     <span class="detail-label">Beden:</span>
-                    <span class="detail-value">{{ order.items.first.selected_size }}</span>
+                    <span class="detail-value">{% if order.items.first.selected_size_name %}{{ order.items.first.selected_size_name }}{% if order.items.first.selected_size_description %} ({{ order.items.first.selected_size_description }}){% endif %}{% else %}{{ order.items.first.selected_size }}{% endif %}</span>
                 </div>
                 {% endif %}
             </div>
@@ -279,7 +279,7 @@
                         <div class="product-name">{{ item.product.name|truncatechars:35 }}</div>
                     </td>
                     <td>{{ item.product.sku|default:"-" }}</td>
-                    <td style="text-align: right">{{ item.selected_size|default:"-" }}</td>
+                    <td style="text-align: right">{% if item.selected_size_name %}{{ item.selected_size_name }}{% if item.selected_size_description %} ({{ item.selected_size_description }}){% endif %}{% else %}{{ item.selected_size|default:"-" }}{% endif %}</td>
                 </tr>
                 {% endfor %}
             </tbody>

@@ -5,7 +5,7 @@ from django.core.paginator import Paginator
 from django.contrib import messages
 import json
 
-from campaigns.models import Campaign, CampaignProduct, SizeOption
+from campaigns.models import Campaign, CampaignProduct, SizeOption, CampaignRedirect
 from products.models import Product
 from admin_panel.decorators import admin_required
 
@@ -205,8 +205,11 @@ def campaign_update(request, pk):
             return response
             
         except Exception as e:
+            import traceback
+            error_detail = traceback.format_exc()
+            print(f"=== Campaign Update Error ===\n{error_detail}")
             return HttpResponse(
-                f'<div class="text-red-600">Hata: {str(e)}</div>',
+                f'\u003cdiv class="text-red-600"\u003eHata: {str(e)}\u003c/div\u003e',
                 status=400
             )
     
@@ -441,3 +444,98 @@ def campaign_product_add(request, pk):
         'showToast': {'message': 'Ürün kampanyaya eklendi', 'type': 'success'}
     })
     return response
+# Add these functions to the end of admin_panel/views/campaigns.py
+
+@admin_required('manage_campaigns')
+def campaign_validate_slug(request):
+    """AJAX endpoint to validate campaign slug uniqueness"""
+    slug = request.GET.get('slug', '').strip()
+    campaign_id = request.GET.get('campaign_id', None)
+    
+    if not slug:
+        return JsonResponse({'valid': True})
+    
+    # Check if slug exists in active campaigns (excluding current campaign if editing)
+    campaign_exists = Campaign.objects.filter(slug=slug)
+    if campaign_id:
+        campaign_exists = campaign_exists.exclude(pk=campaign_id)
+    
+    if campaign_exists.exists():
+        return JsonResponse({
+            'valid': False,
+            'message': 'Bu slug zaten başka bir kampanyada kullanılıyor.'
+        })
+    
+    # Check if slug exists in redirects
+    redirect_exists = CampaignRedirect.objects.filter(old_slug=slug, is_active=True).exists()
+    if redirect_exists:
+        return JsonResponse({
+            'valid': False,
+            'message': 'Bu slug bir yönlendirme olarak kullanılıyor.'
+        })
+    
+    return JsonResponse({'valid': True})
+
+
+@admin_required('manage_campaigns')
+def campaign_redirect_list(request, pk):
+    """List redirects for a campaign (HTMX)"""
+    campaign = get_object_or_404(Campaign, pk=pk)
+    redirects = campaign.redirects.filter(is_active=True).order_by('-created_at')
+    
+    return render(request, 'admin_panel/campaigns/partials/redirect_list.html', {
+        'campaign': campaign,
+        'redirects': redirects,
+    })
+
+
+@admin_required('manage_campaigns')
+def campaign_redirect_add(request, pk):
+    """Add custom redirect for a campaign"""
+    campaign = get_object_or_404(Campaign, pk=pk)
+    
+    if request.method == 'POST':
+        old_slug = request.POST.get('old_slug', '').strip()
+        old_title = request.POST.get('old_title', '').strip()
+        
+        if not old_slug:
+            return JsonResponse({'error': 'Eski slug gerekli'}, status=400)
+        
+        # Validate uniqueness
+        if Campaign.objects.filter(slug=old_slug).exists():
+            return JsonResponse({'error': 'Bu slug aktif bir kampanyada kullanılıyor'}, status=400)
+        
+        if CampaignRedirect.objects.filter(old_slug=old_slug).exists():
+            return JsonResponse({'error': 'Bu slug zaten bir yönlendirme olarak var'}, status=400)
+        
+        # Create redirect
+        CampaignRedirect.objects.create(
+            old_slug=old_slug,
+            campaign=campaign,
+            old_title=old_title,
+            is_manual=True
+        )
+        
+        # Return updated list
+        redirects = campaign.redirects.filter(is_active=True).order_by('-created_at')
+        return render(request, 'admin_panel/campaigns/partials/redirect_list.html', {
+            'campaign': campaign,
+            'redirects': redirects,
+        })
+    
+    return HttpResponse(status=405)
+
+
+@admin_required('manage_campaigns')
+def campaign_redirect_delete(request, redirect_id):
+    """Delete a redirect"""
+    redirect = get_object_or_404(CampaignRedirect, pk=redirect_id)
+    campaign = redirect.campaign
+    redirect.delete()
+    
+    # Return updated list
+    redirects = campaign.redirects.filter(is_active=True).order_by('-created_at')
+    return render(request, 'admin_panel/campaigns/partials/redirect_list.html', {
+        'campaign': campaign,
+        'redirects': redirects,
+    })

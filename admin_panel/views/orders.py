@@ -72,6 +72,12 @@ def order_list(request):
     size_filter = request.GET.get('size', '').strip()
     if size_filter:
         orders = orders.filter(items__selected_size__icontains=size_filter).distinct()
+    
+    # Campaign name changed filter
+    campaign_changed = request.GET.get('campaign_changed', '')
+    if campaign_changed == 'true':
+        from django.db.models import F
+        orders = orders.exclude(campaign_title='').exclude(campaign_title__isnull=True).exclude(campaign_title=F('campaign__title'))
 
     # Sorting
     sort = request.GET.get('sort', 'created_at')
@@ -90,7 +96,7 @@ def order_list(request):
         orders = orders.order_by(f'-{sort_field}')
 
     # Pagination
-    per_page = int(request.GET.get('per_page', 20))
+    per_page = int(request.GET.get('per_page', 100))
     paginator = Paginator(orders, per_page)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
@@ -133,6 +139,9 @@ def order_list(request):
             qs = qs.filter(items__product_id=product_id)
         if exclude_filter != 'size' and size_filter:
             qs = qs.filter(items__selected_size__icontains=size_filter)
+        if exclude_filter != 'campaign_changed' and campaign_changed == 'true':
+            from django.db.models import F
+            qs = qs.exclude(campaign_title='').exclude(campaign_title__isnull=True).exclude(campaign_title=F('campaign__title'))
         return qs
 
     # 1. Status Counts (Apply all filters EXCEPT status)
@@ -154,6 +163,12 @@ def order_list(request):
     size_qs = apply_filters(base_qs, exclude_filter='size')
     size_counts_data = size_qs.exclude(items__selected_size__isnull=True).exclude(items__selected_size='').values('items__selected_size').annotate(count=Count('id'))
     size_counts = {item['items__selected_size']: item['count'] for item in size_counts_data}
+    
+    # 5. Campaign Changed Count (Apply all filters EXCEPT campaign_changed)
+    campaign_changed_qs = apply_filters(base_qs, exclude_filter='campaign_changed')
+    from django.db.models import F
+    campaign_changed_count = campaign_changed_qs.exclude(campaign_title='').exclude(campaign_title__isnull=True).exclude(campaign_title=F('campaign__title')).count()
+
 
     # Prepare context data with counts
     
@@ -202,6 +217,8 @@ def order_list(request):
         'date_from': date_from,
         'date_to': date_to,
         'size_filter': size_filter,
+        'campaign_changed': campaign_changed,
+        'campaign_changed_count': campaign_changed_count,
         'per_page': per_page,
         'sort': sort,
         'direction': direction,
@@ -211,7 +228,7 @@ def order_list(request):
         'products': products_with_counts, # Updated
         'product_id': product_id,
         'available_sizes': sizes_with_counts, # Updated
-        'per_page_options': [10, 20, 30, 50],
+        'per_page_options': [20, 50, 100, 200],
         'stats': stats,
     }
     return render(request, 'admin_panel/orders/list.html', context)
@@ -311,14 +328,24 @@ def order_bulk_action(request):
             response.write('\ufeff')  # BOM for Excel UTF-8
             
             writer = csv.writer(response)
-            writer.writerow(['Sipariş No', 'Müşteri', 'Telefon', 'Kampanya', 'Tutar', 'Durum', 'Tarih', 'Adres'])
+            writer.writerow(['Sipariş No', 'Müşteri', 'Telefon', 'Kampanya', 'Beden İsmi', 'Beden Açıklaması', 'Tutar', 'Durum', 'Tarih', 'Adres'])
             
             for order in orders:
+                first_item = order.items.first()
+                size_name = first_item.selected_size_name if first_item else ''
+                size_desc = first_item.selected_size_description if first_item else ''
+                
+                # Fallback to old field if new ones are empty
+                if not size_name and first_item:
+                    size_name = first_item.selected_size or ''
+                
                 writer.writerow([
                     f'#{order.id}',
                     order.customer_name,
                     order.phone,
                     order.campaign.title if order.campaign else '-',
+                    size_name,
+                    size_desc,
                     f'₺{order.total_amount}',
                     order.get_status_display(),
                     order.created_at.strftime('%d.%m.%Y %H:%M'),

@@ -42,16 +42,69 @@ class Campaign(models.Model):
 
     @property
     def formatted_title(self):
+        from django.utils.html import escape
         words = self.title.split()
         if len(words) > 2:
-            return f"{' '.join(words[:2])}<br>{' '.join(words[2:])}"
-        return self.title
+            return f"{escape(' '.join(words[:2]))}<br>{escape(' '.join(words[2:]))}"
+        return escape(self.title)
 
     @property
     def unit_price(self):
         if self.min_quantity > 0:
             return self.price / self.min_quantity
         return 0
+    
+    def save(self, *args, **kwargs):
+        # Store old slug if this is an update
+        old_slug = None
+        old_title = None
+        if self.pk:  # Sadece mevcut kayıtlar için
+            try:
+                old_instance = Campaign.objects.get(pk=self.pk)
+                # Slug değişti mi?
+                if old_instance.slug != self.slug:
+                    old_slug = old_instance.slug
+                    old_title = old_instance.title
+            except Campaign.DoesNotExist:
+                pass
+        
+        # First save the campaign with new slug
+        super().save(*args, **kwargs)
+        
+        # Clean up redirects to prevent loops
+        if old_slug and old_slug != self.slug:
+            # If new slug matches any existing redirect's old_slug, delete that redirect
+            # This prevents: A->B exists, then changing B back to A (which would create B->A loop)
+            CampaignRedirect.objects.filter(
+                old_slug=self.slug,
+                campaign=self
+            ).delete()
+            
+            # Create new redirect from old slug to new slug
+            CampaignRedirect.objects.create(
+                old_slug=old_slug,
+                campaign=self,
+                old_title=old_title,
+                is_manual=False
+            )
+
+
+class CampaignRedirect(models.Model):
+    old_slug = models.SlugField(max_length=255, unique=True, verbose_name="Eski Slug")
+    campaign = models.ForeignKey(Campaign, on_delete=models.CASCADE, related_name='redirects', verbose_name="Hedef Kampanya")
+    old_title = models.CharField(max_length=255, blank=True, verbose_name="Eski Başlık")
+    is_active = models.BooleanField(default=True, verbose_name="Aktif")
+    is_manual = models.BooleanField(default=False, verbose_name="Manuel Eklendi")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Oluşturulma Tarihi")
+    
+    class Meta:
+        verbose_name = "Kampanya Yönlendirmesi"
+        verbose_name_plural = "Kampanya Yönlendirmeleri"
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return f"{self.old_slug} → {self.campaign.slug}"
+
 
 class CampaignProduct(models.Model):
     campaign = models.ForeignKey(Campaign, on_delete=models.CASCADE, verbose_name="Kampanya")

@@ -28,6 +28,24 @@ class CampaignModelTest(TestCase):
                 price=50.00
             )
 
+    def test_unit_price_calculation(self):
+        """Test unit price calculation"""
+        # min_quantity = 3, price = 100
+        self.assertEqual(self.campaign.unit_price, 100.00 / 3)
+        
+        # Test division by zero protection
+        self.campaign.min_quantity = 0
+        self.assertEqual(self.campaign.unit_price, 0)
+
+    def test_formatted_title_xss(self):
+        """Test that formatted_title escapes HTML"""
+        self.campaign.title = "<script>alert('XSS')</script> Campaign Title"
+        self.campaign.save()
+        
+        # Should contain escaped characters, not raw <script>
+        self.assertNotIn("<script>", self.campaign.formatted_title)
+        self.assertIn("&lt;script&gt;", self.campaign.formatted_title)
+        self.assertIn("<br>", self.campaign.formatted_title) # <br> is added by us, so it should be there
 class CampaignProductModelTest(TestCase):
     def setUp(self):
         self.campaign = Campaign.objects.create(

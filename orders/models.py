@@ -13,6 +13,12 @@ class Order(models.Model):
     )
 
     campaign = models.ForeignKey('campaigns.Campaign', on_delete=models.SET_NULL, null=True, verbose_name="Satın Alınan Kampanya")
+    
+    # Snapshot Fields (Kampanya)
+    campaign_title = models.CharField(max_length=255, blank=True, null=True, verbose_name="Kampanya Başlığı (Snapshot)")
+    campaign_slug = models.SlugField(max_length=255, blank=True, null=True, verbose_name="Kampanya Slug (Snapshot)")
+    campaign_image_url = models.CharField(max_length=500, blank=True, null=True, verbose_name="Kampanya Görsel URL (Snapshot)")
+
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='new', verbose_name="Durum")
     
     customer_name = models.CharField(max_length=255, verbose_name="Müşteri Adı")
@@ -57,6 +63,14 @@ class OrderItem(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, verbose_name="Ürün")
     quantity = models.IntegerField(default=1, verbose_name="Adet")
     selected_size = models.CharField(max_length=50, blank=True, null=True, verbose_name="Seçilen Beden")
+    selected_size_name = models.CharField(max_length=50, blank=True, null=True, verbose_name="Beden İsmi")
+    selected_size_description = models.CharField(max_length=255, blank=True, null=True, verbose_name="Beden Açıklaması")
+    
+    # Snapshot Fields (Sipariş anındaki bilgiler)
+    product_name = models.CharField(max_length=255, blank=True, null=True, verbose_name="Ürün Adı (Snapshot)")
+    product_sku = models.CharField(max_length=100, blank=True, null=True, verbose_name="SKU (Snapshot)")
+    product_description = models.TextField(blank=True, null=True, verbose_name="Açıklama (Snapshot)")
+    product_image_url = models.CharField(max_length=500, blank=True, null=True, verbose_name="Görsel URL (Snapshot)")
 
     class Meta:
         verbose_name = "Sipariş Ürünü"

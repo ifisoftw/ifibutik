@@ -46,6 +46,10 @@ def create_order(request):
     campaign_id = request.POST.get('campaign_id')
     campaign = get_object_or_404(Campaign, id=campaign_id)
     
+    # GÜVENLİK: Pasif Kampanya Kontrolü
+    if not campaign.is_active:
+        return HttpResponse("Bu kampanya artık aktif değil.", status=400)
+    
     customer_name = f"{request.POST.get('first_name')} {request.POST.get('last_name')}"
     phone = request.POST.get('phone')
     city_id = request.POST.get('city')
@@ -105,7 +109,11 @@ def create_order(request):
             # Siparişi oluştur
             order = Order.objects.create(
                 campaign=campaign,
-                status='new',
+                # Snapshot Data
+                campaign_title=campaign.title,
+                campaign_slug=campaign.slug,
+                campaign_image_url=campaign.banner_image.url if campaign.banner_image else None,
+                
                 customer_name=customer_name,
                 phone=phone,
                 tracking_number=tracking_number,  # Yeni eklenen alan
@@ -135,18 +143,27 @@ def create_order(request):
 
                 size_slug = selected_sizes[i] if i < len(selected_sizes) else None
                 
-                # Beden ismini bul (slug'dan)
+                # Beden ismini ve açıklamasını bul (slug'dan)
                 size_name = ""
+                size_description = ""
                 if size_slug:
                     size_obj = SizeOption.objects.filter(slug=size_slug).first()
                     if size_obj:
                         size_name = size_obj.name
+                        size_description = size_obj.description
 
                 OrderItem.objects.create(
                     order=order,
                     product=product,
                     quantity=1,
-                    selected_size=size_name
+                    selected_size=size_name,  # Backward compatibility
+                    selected_size_name=size_name,
+                    selected_size_description=size_description,
+                    # Snapshot Data
+                    product_name=product.name,
+                    product_sku=product.sku,
+                    product_description=product.description,
+                    product_image_url=product.images.first().image.url if product.images.exists() else None
                 )
                 
                 # Stok düşme işlemi (Atomic Update)
