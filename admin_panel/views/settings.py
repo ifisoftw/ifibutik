@@ -2,13 +2,14 @@ from django.shortcuts import render, redirect
 import os
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from ..models import SiteSettings
+from ..models import SiteSettings, FAQ
 from ..decorators import admin_required
 
 @login_required
 @admin_required('manage_settings')
 def settings_view(request):
     settings = SiteSettings.load()
+    faqs = FAQ.objects.all().order_by('order', '-created_at')
     
     if request.method == 'POST':
         # Store Info
@@ -76,5 +77,6 @@ def settings_view(request):
         return redirect('admin_settings')
 
     return render(request, 'admin_panel/settings.html', {
-        'settings': settings
+        'settings': settings,
+        'faqs': faqs
     })

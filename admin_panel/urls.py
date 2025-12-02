@@ -7,6 +7,7 @@ from .views import orders as order_views
 from .views import reports as report_views
 from .views import sizes as size_views
 from .views import settings as settings_views
+from .views import faq as faq_views
 
 urlpatterns = [
     # Authentication
@@ -18,6 +19,10 @@ urlpatterns = [
 
     # Settings
     path('settings/', settings_views.settings_view, name='admin_settings'),
+    path('settings/faq/create/', faq_views.faq_create, name='admin_faq_create'),
+    path('settings/faq/<int:pk>/update/', faq_views.faq_update, name='admin_faq_update'),
+    path('settings/faq/<int:pk>/delete/', faq_views.faq_delete, name='admin_faq_delete'),
+    path('settings/faq/<int:pk>/toggle/', faq_views.faq_toggle, name='admin_faq_toggle'),
     
     # Campaigns
     path('campaigns/', campaign_views.campaign_list, name='admin_campaigns'),

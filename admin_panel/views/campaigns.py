@@ -80,6 +80,11 @@ def campaign_list(request):
         'status_counts': {
             'active': active_count,
             'inactive': inactive_count
+        },
+        'stats': {
+            'total': Campaign.objects.count(),
+            'active': Campaign.objects.filter(is_active=True).count(),
+            'inactive': Campaign.objects.filter(is_active=False).count(),
         }
     }
     

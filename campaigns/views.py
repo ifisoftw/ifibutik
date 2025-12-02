@@ -1,6 +1,7 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.http import HttpResponse
-from .models import Campaign, FAQ
+from .models import Campaign
+from admin_panel.models import FAQ
 from addresses.models import City, District, Neighborhood
 
 def home_view(request):
@@ -22,7 +23,7 @@ def campaign_detail(request, slug):
     cities = City.objects.filter(is_active=True).order_by('name')
     
     # Fetch active FAQs
-    faqs = FAQ.objects.filter(is_active=True).order_by('sort_order')
+    faqs = FAQ.objects.filter(is_active=True).order_by('order')
     
     context = {
         'campaign': campaign,

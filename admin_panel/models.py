@@ -111,3 +111,21 @@ class SiteSettings(models.Model):
     def __str__(self):
         return "Site Ayarları"
 
+
+class FAQ(models.Model):
+    """Sıkça Sorulan Sorular"""
+    question = models.CharField(max_length=255, verbose_name="Soru")
+    answer = models.TextField(verbose_name="Cevap")
+    order = models.PositiveIntegerField(default=0, verbose_name="Sıralama")
+    is_active = models.BooleanField(default=True, verbose_name="Aktif mi?")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Oluşturulma Tarihi")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="Güncellenme Tarihi")
+
+    class Meta:
+        verbose_name = 'SSS'
+        verbose_name_plural = 'SSS'
+        ordering = ['order', '-created_at']
+
+    def __str__(self):
+        return self.question
+
