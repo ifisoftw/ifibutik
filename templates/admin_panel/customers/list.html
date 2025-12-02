@@ -17,82 +17,151 @@
 {% endblock %}
 
 {% block content %}
-<div x-data="{ 
-        selectedItems: [],
-        selectAll: false,
-        detailModalOpen: false,
-        detailContent: '',
-        toggleAll() {
-            if (this.selectAll) {
-                this.selectedItems = [...document.querySelectorAll('.customer-checkbox').values()].map(el => el.value);
-            } else {
-                this.selectedItems = [];
-            }
-        },
-        openDetail(phone) {
-            fetch(`/panel/customers/${phone}/`)
-                .then(res => res.text())
-                .then(html => {
-                    this.detailContent = html;
-                    this.detailModalOpen = true;
-                });
-        },
-        exportSelected() {
-            if (this.selectedItems.length === 0) return;
-            window.location.href = `{% url 'admin_customers_export' %}?selected_phones=${this.selectedItems.join(',')}`;
-        }
-    }">
+<section class="space-y-6" x-data="{ 
+             selectedItems: [],
+             selectAll: false,
+             allIds: [{% for c in page_obj %}'{{ c.phone }}'{% if not forloop.last %},{% endif %}{% endfor %}],
+             toggleAll() {
+                 if (this.selectAll) {
+                     this.selectedItems = [...this.allIds];
+                 } else {
+                     this.selectedItems = [];
+                 }
+             },
+             toggleItem(id) {
+                 const index = this.selectedItems.indexOf(id);
+                 if (index > -1) {
+                     this.selectedItems.splice(index, 1);
+                 } else {
+                     this.selectedItems.push(id);
+                 }
+             },
+             exportSelected() {
+                 if (this.selectedItems.length === 0) return;
+                 window.location.href = `{% url 'admin_customers_export' %}?selected_phones=${this.selectedItems.join(',')}`;
+             }
+         }">
 
-    <!-- Actions Bar -->
-    <div class="flex justify-end gap-3 mb-6">
-        <button @click="exportSelected()" 
-                x-show="selectedItems.length > 0"
-                x-transition
-                class="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors shadow-sm">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
-            </svg>
-            Seçilenleri Dışa Aktar (<span x-text="selectedItems.length"></span>)
-        </button>
+    <!-- Statistics Cards -->
+    {% comment %} <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+        <!-- Toplam Müşteri -->
+        {% include 'admin_panel/components/stats_card.html' with label='Toplam Müşteri' value=stats.total_customers color='emerald' sub_label='Tekil müşteri' icon='<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>' %}
         
-        <a href="{% url 'admin_customers_export' %}" 
-           class="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 transition-colors shadow-lg shadow-emerald-200">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
-            </svg>
-            Tümünü Dışa Aktar
-        </a>
+        <!-- Toplam Sipariş -->
+        {% include 'admin_panel/components/stats_card.html' with label='Toplam Sipariş' value=stats.total_orders color='blue' sub_label='Tüm zamanlar' icon='<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>' %}
+        
+        <!-- Toplam Ciro -->
+        {% include 'admin_panel/components/stats_card.html' with label='Toplam Ciro' value=stats.total_revenue|floatformat:0|add:' ₺' color='purple' sub_label='Brüt gelir' icon='<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>' %}
+        
+        <!-- Ort. Sepet Tutarı -->
+        {% include 'admin_panel/components/stats_card.html' with label='Ort. Sepet' value=stats.avg_order_value|floatformat:2|add:' ₺' color='orange' sub_label='Sipariş başına' icon='<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>' %}
+    </div> {% endcomment %}
+
+    <!-- Bulk Actions Bar -->
+    <div x-show="selectedItems.length > 0" x-transition x-cloak
+        class="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50">
+        <div class="glass-card rounded-2xl shadow-2xl px-6 py-4 flex items-center gap-4">
+            <span class="text-sm font-semibold text-gray-900">
+                <span x-text="selectedItems.length"></span> müşteri seçildi
+            </span>
+            
+            <button @click="exportSelected()"
+                class="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors shadow-sm">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                </svg>
+                Seçilenleri Dışa Aktar
+            </button>
+            
+            <button @click="selectedItems = []; selectAll = false"
+                class="px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 font-medium transition-colors">
+                İptal
+            </button>
+        </div>
     </div>
 
-    <div class="glass-card rounded-2xl overflow-hidden">
+    <!-- Filters -->
+    <div class="bg-white border border-gray-200 rounded-xl shadow-sm p-3">
+        <form method="GET" class="space-y-3">
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-3">
+                <!-- Search Bar -->
+                <div class="md:col-span-8 relative">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <svg class="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                        </svg>
+                    </div>
+                    <input type="text" name="search" value="{{ search }}" 
+                        placeholder="Müşteri adı, telefon, şehir veya ilçe..."
+                        class="block w-full pl-9 pr-3 py-2 bg-gray-50 border-gray-200 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:bg-white focus:ring-1 focus:ring-primary focus:border-primary transition-all">
+                    {% if search %}
+                    <div class="absolute inset-y-0 right-0 pr-2 flex items-center">
+                        <a href="{% url 'admin_customers' %}" class="text-gray-400 hover:text-gray-600">
+                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Export All Button -->
+                <div class="md:col-span-2">
+                    <a href="{% url 'admin_customers_export' %}" 
+                       class="flex items-center justify-center gap-2 w-full h-full px-4 py-2 bg-gray-100 text-gray-700 border border-gray-200 rounded-lg hover:bg-gray-200 hover:border-gray-300 transition-all text-sm font-medium">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                        </svg>
+                        Tümünü İndir
+                    </a>
+                </div>
+
+                <!-- Per Page -->
+                <div class="md:col-span-2">
+                    <select name="per_page" onchange="this.form.submit()"
+                        class="w-full h-full rounded-lg border-gray-200 text-sm py-2 px-2 focus:ring-1 focus:ring-primary focus:border-primary bg-gray-50">
+                        {% for size in per_page_options %}
+                        <option value="{{ size }}" {% if per_page == size %}selected{% endif %}>{{ size }} / Sayfa</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Top Actions -->
+    <div class="flex items-center justify-between">
+        <p class="text-sm text-gray-600">
+            <span class="font-semibold text-gray-900">{{ page_obj.paginator.count }}</span> müşteri bulundu
+        </p>
+    </div>
+
+    <!-- Customers Table -->
+    <div class="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
         <div class="overflow-x-auto">
-            <table class="w-full">
-                <thead>
-                    <tr class="bg-gray-50/50 border-b border-gray-100 text-left">
-                        <th class="py-4 px-6 w-10">
-                            <input type="checkbox" 
-                                   @change="selectAll = $el.checked; 
-                                            document.querySelectorAll('.customer-checkbox').forEach(el => el.checked = selectAll);
-                                            toggleAll()"
-                                   class="rounded border-gray-300 text-emerald-600 focus:ring-emerald-500">
+            <table class="min-w-full divide-y divide-gray-100">
+                <thead class="bg-gray-50 text-[11px] font-semibold uppercase tracking-wide text-gray-500">
+                    <tr>
+                        <th class="px-4 py-3 w-12">
+                            <input type="checkbox" x-model="selectAll" @change="toggleAll()"
+                                class="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary">
                         </th>
-                        <th class="py-4 px-6 text-xs font-bold text-gray-500 uppercase tracking-wider">Müşteri</th>
-                        <th class="py-4 px-6 text-xs font-bold text-gray-500 uppercase tracking-wider">Konum</th>
-                        <th class="py-4 px-6 text-xs font-bold text-gray-500 uppercase tracking-wider">Toplam Sipariş</th>
-                        <th class="py-4 px-6 text-xs font-bold text-gray-500 uppercase tracking-wider">Toplam Harcama</th>
-                        <th class="py-4 px-6 text-xs font-bold text-gray-500 uppercase tracking-wider">Son Sipariş</th>
-                        <th class="py-4 px-6 w-10"></th>
+                        {% include 'admin_panel/orders/partials/sort_header.html' with label='Müşteri' column='customer' align='left' %}
+                        {% include 'admin_panel/orders/partials/sort_header.html' with label='Konum' column='location' align='left' %}
+                        {% include 'admin_panel/orders/partials/sort_header.html' with label='Toplam Sipariş' column='orders' align='center' %}
+                        {% include 'admin_panel/orders/partials/sort_header.html' with label='Toplam Harcama' column='spent' align='right' %}
+                        {% include 'admin_panel/orders/partials/sort_header.html' with label='Son Sipariş' column='last_order' align='center' %}
+                        <th class="px-4 py-3 text-center">İşlemler</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-gray-100">
-                    {% for customer in customers %}
+                <tbody class="divide-y divide-gray-100 text-sm">
+                    {% for customer in page_obj %}
                     <tr class="hover:bg-gray-50/50 transition-colors group">
-                        <td class="py-4 px-6">
-                            <input type="checkbox" value="{{ customer.phone }}" 
-                                   @change="if($el.checked) selectedItems.push($el.value); else selectedItems = selectedItems.filter(i => i !== $el.value)"
-                                   class="customer-checkbox rounded border-gray-300 text-emerald-600 focus:ring-emerald-500">
+                        <td class="px-4 py-3">
+                            <input type="checkbox" :value="'{{ customer.phone }}'" x-model="selectedItems"
+                                class="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary">
                         </td>
-                        <td class="py-4 px-6">
+                        <td class="px-4 py-3">
                             <div class="flex items-center gap-3">
                                 <div class="w-10 h-10 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold text-sm">
                                     {{ customer.customer_name|make_list|first|upper }}
@@ -103,23 +172,25 @@
                                 </div>
                             </div>
                         </td>
-                        <td class="py-4 px-6">
+                        <td class="px-4 py-3">
                             <div class="text-sm text-gray-900">{{ customer.city }}</div>
                             <div class="text-xs text-gray-500">{{ customer.district }}</div>
                         </td>
-                        <td class="py-4 px-6">
+                        <td class="px-4 py-3 text-center">
                             <div class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                                 {{ customer.total_orders }} Sipariş
                             </div>
                         </td>
-                        <td class="py-4 px-6">
+                        <td class="px-4 py-3 text-right">
                             <div class="font-bold text-gray-900">{{ customer.total_spent|floatformat:2 }} ₺</div>
                         </td>
-                        <td class="py-4 px-6">
-                            <div class="text-sm text-gray-500">{{ customer.last_order_date|date:"d.m.Y H:i" }}</div>
+                        <td class="px-4 py-3 text-center text-gray-500">
+                            {{ customer.last_order_date|date:"d.m.Y H:i" }}
                         </td>
-                        <td class="py-4 px-6">
-                            <button @click="openDetail('{{ customer.phone }}')" 
+                        <td class="px-4 py-3 text-center">
+                            <button hx-get="{% url 'admin_customer_detail' customer.phone %}"
+                                    hx-target="#modal-container"
+                                    hx-swap="innerHTML"
                                     class="text-gray-400 hover:text-blue-600 transition-colors p-2 hover:bg-blue-50 rounded-lg">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
@@ -130,44 +201,62 @@
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="7" class="py-12 text-center text-gray-500">
-                            Henüz müşteri kaydı bulunmuyor.
+                        <td colspan="7" class="px-4 py-12 text-center text-gray-500">
+                            Filtre kriterlerine uyan müşteri bulunamadı.
                         </td>
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
-    </div>
 
-    <!-- Detail Modal -->
-    <div x-show="detailModalOpen" class="fixed inset-0 z-50 overflow-y-auto" style="display: none;">
-        <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
-            <div x-show="detailModalOpen" 
-                 x-transition:enter="ease-out duration-300"
-                 x-transition:enter-start="opacity-0"
-                 x-transition:enter-end="opacity-100"
-                 x-transition:leave="ease-in duration-200"
-                 x-transition:leave-start="opacity-100"
-                 x-transition:leave-end="opacity-0"
-                 class="fixed inset-0 transition-opacity" aria-hidden="true">
-                <div class="absolute inset-0 bg-gray-500 opacity-75" @click="detailModalOpen = false"></div>
-            </div>
+        <!-- Pagination -->
+        {% if page_obj.paginator.num_pages > 1 %}
+        <div class="flex flex-col md:flex-row items-center justify-between gap-3 px-4 py-4 border-t border-gray-100 text-sm">
+            <p class="text-gray-500">
+                {{ page_obj.paginator.count }} kayıttan
+                <span class="font-semibold text-gray-900">
+                    {{ page_obj.start_index }} - {{ page_obj.end_index }}
+                </span>
+                arası gösteriliyor.
+            </p>
+            <div class="flex items-center gap-2">
+                {% if page_obj.has_previous %}
+                <a href="?page={{ page_obj.previous_page_number }}&sort={{ sort }}&dir={{ direction }}{{ query_string }}"
+                    class="px-3 py-1.5 rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-100">Önceki</a>
+                {% else %}
+                <span class="px-3 py-1.5 rounded-xl border border-gray-100 text-gray-300">Önceki</span>
+                {% endif %}
 
-            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+                <span class="px-3 py-1.5 rounded-xl bg-gray-100 text-gray-700 font-semibold">
+                    Sayfa {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}
+                </span>
 
-            <div x-show="detailModalOpen" 
-                 x-transition:enter="ease-out duration-300"
-                 x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-                 x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
-                 x-transition:leave="ease-in duration-200"
-                 x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
-                 x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-                 class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full"
-                 x-html="detailContent">
-                <!-- Content loaded via fetch -->
+                {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}&sort={{ sort }}&dir={{ direction }}{{ query_string }}"
+                    class="px-3 py-1.5 rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-100">Sonraki</a>
+                {% else %}
+                <span class="px-3 py-1.5 rounded-xl border border-gray-100 text-gray-300">Sonraki</span>
+                {% endif %}
             </div>
         </div>
+        {% endif %}
     </div>
-</div>
+</section>
+
+<!-- Modal Container for HTMX -->
+<div id="modal-container"></div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    // Modal success handler
+    document.body.addEventListener('modalSuccess', () => {
+        // Close modal
+        document.getElementById('modal-container').innerHTML = '';
+        // Reload page
+        window.location.reload();
+    });
+</script>
 {% endblock %}

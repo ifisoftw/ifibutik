@@ -306,13 +306,26 @@ def social_proof_api(request):
     
     return JsonResponse(data)
 
+from django.db.models import Q
+
 def return_lookup(request):
     if request.method == 'POST':
-        order_id = request.POST.get('order_id')
-        phone = request.POST.get('phone')
+        query = request.POST.get('query')
         
+        if not query:
+            messages.error(request, 'Lütfen sipariş takip numarası veya telefon numarası giriniz.')
+            return render(request, 'orders/return_lookup.html')
+
         try:
-            order = Order.objects.get(id=order_id, phone=phone)
+            # Search by tracking number OR phone
+            order = Order.objects.filter(
+                Q(tracking_number=query) | Q(phone=query)
+            ).first()
+            
+            if not order:
+                messages.error(request, 'Sipariş bulunamadı. Bilgileri kontrol ediniz.')
+                return render(request, 'orders/return_lookup.html')
+
             # Check if already returned or cancelled
             if order.status in ['cancelled', 'return']:
                 messages.error(request, 'Bu sipariş için iade talebi oluşturulamaz (İptal veya İade edilmiş).')
@@ -320,8 +333,9 @@ def return_lookup(request):
                 # Store in session for the next step
                 request.session['return_order_id'] = order.id
                 return redirect('return_create')
-        except Order.DoesNotExist:
-            messages.error(request, 'Sipariş bulunamadı. Bilgileri kontrol ediniz.')
+                
+        except Exception as e:
+            messages.error(request, 'Bir hata oluştu. Lütfen tekrar deneyiniz.')
             
     return render(request, 'orders/return_lookup.html')
 
@@ -335,9 +349,8 @@ def return_create(request):
     if request.method == 'POST':
         iban = request.POST.get('iban')
         reason = request.POST.get('reason')
-        selected_items = request.POST.getlist('items')
         
-        if not iban or not reason or not selected_items:
+        if not iban or not reason:
             messages.error(request, 'Lütfen tüm alanları doldurunuz.')
         else:
             # Create Return Request
@@ -348,14 +361,12 @@ def return_create(request):
                 status='pending'
             )
             
-            # Create Return Items
-            for item_id in selected_items:
-                quantity = int(request.POST.get(f'qty_{item_id}', 1))
-                order_item = OrderItem.objects.get(id=item_id)
+            # Create Return Items (ALL items)
+            for order_item in order.items.all():
                 ReturnItem.objects.create(
                     return_request=return_request,
                     order_item=order_item,
-                    quantity=quantity
+                    quantity=order_item.quantity # Return full quantity
                 )
             
             # Clear session

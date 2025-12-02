@@ -15,29 +15,30 @@
         <form action="{% url 'return_create' %}" method="POST" class="border-t border-gray-200 px-4 py-5 sm:p-0">
             {% csrf_token %}
             
-            <!-- Items Selection -->
-            <div class="px-4 py-5 sm:px-6">
-                <h4 class="text-md font-medium text-gray-900 mb-4">İade Edilecek Ürünleri Seçin</h4>
+            <!-- Order Items -->
+            <div class="bg-gray-50 rounded-xl p-6 mb-6">
+                <h3 class="text-lg font-bold text-gray-900 mb-4">İade Edilecek Ürünler</h3>
+                <div class="bg-blue-50 text-blue-800 p-4 rounded-lg mb-4 text-sm">
+                    <strong>Bilgi:</strong> İade işlemlerinde siparişteki tüm ürünler toplu olarak iade alınmaktadır.
+                </div>
                 <div class="space-y-4">
                     {% for item in order.items.all %}
-                    <div class="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50">
-                        <div class="flex items-center h-5">
-                            <input id="item_{{ item.id }}" name="items" value="{{ item.id }}" type="checkbox" 
-                                   class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded">
-                        </div>
-                        <div class="ml-3 flex-1 flex items-center justify-between">
-                            <label for="item_{{ item.id }}" class="font-medium text-gray-700">
-                                {{ item.product_name }}
-                                <span class="text-gray-500 text-sm block">{{ item.selected_size_name }}</span>
-                            </label>
-                            <div class="flex items-center gap-2">
-                                <span class="text-sm text-gray-500">Adet:</span>
-                                <select name="qty_{{ item.id }}" class="text-sm border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
-                                    {% for i in "x"|rjust:item.quantity|make_list %}
-                                    <option value="{{ forloop.counter }}">{{ forloop.counter }}</option>
-                                    {% endfor %}
-                                </select>
+                    <div class="flex items-center gap-4 bg-white p-4 rounded-lg border border-gray-200">
+                        <div class="w-16 h-16 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
+                            {% if item.product_image_url %}
+                            <img src="{{ item.product_image_url }}" alt="{{ item.product_name }}" class="w-full h-full object-cover">
+                            {% else %}
+                            <div class="w-full h-full flex items-center justify-center text-gray-400">
+                                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                </svg>
                             </div>
+                            {% endif %}
+                        </div>
+                        <div class="flex-1">
+                            <h4 class="font-medium text-gray-900">{{ item.product_name }}</h4>
+                            <p class="text-sm text-gray-500">{{ item.selected_size_name }}</p>
+                            <div class="mt-1 text-xs text-gray-500">Adet: {{ item.quantity }}</div>
                         </div>
                     </div>
                     {% endfor %}

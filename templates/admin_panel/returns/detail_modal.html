@@ -1,108 +1,263 @@
-<div class="p-6">
-    <!-- Header -->
-    <div class="flex items-center justify-between mb-6">
-        <div>
-            <h3 class="text-xl font-bold text-gray-900">İade Talebi #{{ return_request.id }}</h3>
-            <p class="text-sm text-gray-500">{{ return_request.created_at|date:"d.m.Y H:i" }}</p>
-        </div>
-        <button @click="detailModalOpen = false" class="text-gray-400 hover:text-gray-600 transition-colors">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-            </svg>
-        </button>
-    </div>
+{% extends 'admin_panel/components/modal_wrapper.html' %}
 
-    <!-- Customer & Order Info -->
-    <div class="grid grid-cols-2 gap-4 mb-6">
-        <div class="bg-gray-50 rounded-xl p-4">
-            <h4 class="text-xs font-bold text-gray-500 uppercase mb-2">Müşteri Bilgileri</h4>
-            <div class="font-bold text-gray-900">{{ return_request.order.customer_name }}</div>
-            <div class="text-sm text-gray-600">{{ return_request.order.phone }}</div>
-        </div>
-        <div class="bg-gray-50 rounded-xl p-4">
-            <h4 class="text-xs font-bold text-gray-500 uppercase mb-2">Sipariş Bilgileri</h4>
-            <div class="font-bold text-gray-900">Sipariş #{{ return_request.order.id }}</div>
-            <div class="text-sm text-gray-600">{{ return_request.order.total_amount }} ₺</div>
-        </div>
-    </div>
+{% block modal_width %}max-w-5xl{% endblock %}
+{% block modal_title %}İade Talebi #{{ return_request.id }}{% endblock %}
 
-    <!-- Return Details -->
-    <div class="mb-6">
-        <h4 class="text-sm font-bold text-gray-900 mb-3">İade Detayları</h4>
-        <div class="bg-white border border-gray-200 rounded-xl p-4 space-y-3">
-            <div class="flex justify-between">
-                <span class="text-gray-600">İade Nedeni:</span>
-                <span class="font-medium text-gray-900">{{ return_request.get_reason_display }}</span>
-            </div>
-            <div class="flex justify-between">
-                <span class="text-gray-600">IBAN:</span>
-                <span class="font-mono font-medium text-gray-900 bg-gray-100 px-2 py-1 rounded">{{ return_request.iban }}</span>
-            </div>
-            <div class="flex justify-between">
-                <span class="text-gray-600">Durum:</span>
-                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                    {% if return_request.status == 'pending' %}bg-yellow-100 text-yellow-800
-                    {% elif return_request.status == 'approved' %}bg-green-100 text-green-800
-                    {% elif return_request.status == 'rejected' %}bg-red-100 text-red-800
-                    {% else %}bg-blue-100 text-blue-800{% endif %}">
-                    {{ return_request.get_status_display }}
-                </span>
-            </div>
-        </div>
+{% block modal_body %}
+<div x-data="{ tab: 'info' }">
+    
+    <!-- Tab Navigation -->
+    <div class="border-b border-gray-200 px-6">
+        <nav class="flex space-x-6">
+            <button @click="tab = 'info'" 
+                    :class="tab === 'info' ? 'border-primary text-primary bg-blue-50' : 'border-transparent text-gray-500'"
+                    class="py-3 px-4 border-b-2 font-medium text-sm rounded-t-lg transition-colors">
+                <div class="flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <span>İade Bilgileri</span>
+                </div>
+            </button>
+            
+            <button @click="tab = 'products'" 
+                    :class="tab === 'products' ? 'border-primary text-primary bg-blue-50' : 'border-transparent text-gray-500'"
+                    class="py-3 px-4 border-b-2 font-medium text-sm rounded-t-lg transition-colors">
+                <div class="flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+                    </svg>
+                    <span>İade Ürünleri</span>
+                </div>
+            </button>
+            
+            <button @click="tab = 'order'" 
+                    :class="tab === 'order' ? 'border-primary text-primary bg-blue-50' : 'border-transparent text-gray-500'"
+                    class="py-3 px-4 border-b-2 font-medium text-sm rounded-t-lg transition-colors">
+                <div class="flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                    </svg>
+                    <span>Sipariş Detayları</span>
+                </div>
+            </button>
+        </nav>
     </div>
-
-    <!-- Return Items -->
-    <div class="mb-6">
-        <h4 class="text-sm font-bold text-gray-900 mb-3">İade Edilecek Ürünler</h4>
-        <div class="space-y-2">
-            {% for item in return_request.items.all %}
-            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                <div class="flex items-center gap-3">
-                    <div class="w-8 h-8 bg-white rounded-lg flex items-center justify-center border border-gray-200 text-xs font-bold text-gray-500">
-                        {{ item.quantity }}x
+    
+    <!-- Tab Content -->
+    <div class="p-6">
+        
+        <!-- Tab 1: İade Bilgileri -->
+        <div x-show="tab === 'info'">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Sol: İade Detayları -->
+                <div class="bg-blue-50 rounded-lg p-6">
+                    <h3 class="text-sm font-bold text-gray-900 mb-4 flex items-center gap-2">
+                        <svg class="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                        </svg>
+                        İADE DETAYLARI
+                    </h3>
+                    <dl class="space-y-3">
+                        <div>
+                            <dt class="text-xs font-medium text-gray-600 mb-1">Talep ID</dt>
+                            <dd class="text-sm font-semibold text-gray-900">#{{ return_request.id }}</dd>
+                        </div>
+                        <div>
+                            <dt class="text-xs font-medium text-gray-600 mb-1">Oluşturulma Tarihi</dt>
+                            <dd class="text-sm font-semibold text-gray-900">{{ return_request.created_at|date:"d.m.Y H:i" }}</dd>
+                        </div>
+                        <div>
+                            <dt class="text-xs font-medium text-gray-600 mb-1">İade Nedeni</dt>
+                            <dd class="text-sm font-semibold text-gray-900">{{ return_request.get_reason_display }}</dd>
+                        </div>
+                        <div>
+                            <dt class="text-xs font-medium text-gray-600 mb-1">Durum</dt>
+                            <dd>
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                                    {% if return_request.status == 'pending' %}bg-yellow-100 text-yellow-800
+                                    {% elif return_request.status == 'approved' %}bg-green-100 text-green-800
+                                    {% elif return_request.status == 'rejected' %}bg-red-100 text-red-800
+                                    {% else %}bg-blue-100 text-blue-800{% endif %}">
+                                    {{ return_request.get_status_display }}
+                                </span>
+                            </dd>
+                        </div>
+                        <div>
+                            <dt class="text-xs font-medium text-gray-600 mb-1">IBAN</dt>
+                            <dd class="text-sm font-mono font-medium text-gray-900 bg-white px-3 py-2 rounded border border-gray-200 inline-block w-full">
+                                {{ return_request.iban }}
+                            </dd>
+                        </div>
+                    </dl>
+                </div>
+                
+                <!-- Sağ: Müşteri ve Yönetici İşlemi -->
+                <div class="space-y-6">
+                    <!-- Müşteri Bilgileri -->
+                    <div class="bg-purple-50 rounded-lg p-6">
+                        <h3 class="text-sm font-bold text-gray-900 mb-4 flex items-center gap-2">
+                            <svg class="w-4 h-4 text-purple-600" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"/>
+                            </svg>
+                            MÜŞTERİ BİLGİLERİ
+                        </h3>
+                        <dl class="space-y-3">
+                            <div>
+                                <dt class="text-xs font-medium text-gray-600 mb-1">Ad Soyad</dt>
+                                <dd class="text-sm font-semibold text-gray-900">{{ return_request.order.customer_name }}</dd>
+                            </div>
+                            <div>
+                                <dt class="text-xs font-medium text-gray-600 mb-1">Telefon</dt>
+                                <dd class="text-sm font-semibold text-gray-900">{{ return_request.order.phone }}</dd>
+                            </div>
+                        </dl>
                     </div>
-                    <div>
-                        <div class="text-sm font-medium text-gray-900">{{ item.order_item.product_name }}</div>
-                        <div class="text-xs text-gray-500">{{ item.order_item.selected_size_name }}</div>
+
+                    <!-- Yönetici Notu Formu -->
+                    <div class="bg-white border border-gray-200 rounded-lg p-6">
+                        <h3 class="text-sm font-bold text-gray-900 mb-4">YÖNETİCİ NOTU</h3>
+                        <form id="return-action-form" action="{% url 'admin_return_action' return_request.id %}" method="POST">
+                            {% csrf_token %}
+                            <textarea name="note" rows="4" 
+                                      class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary text-sm"
+                                      placeholder="Müşteriye iletilecek not veya dahili notlar...">{{ return_request.admin_note }}</textarea>
+                        </form>
                     </div>
                 </div>
             </div>
-            {% endfor %}
         </div>
+        
+        <!-- Tab 2: İade Ürünleri -->
+        <div x-show="tab === 'products'" x-cloak>
+            <div class="bg-orange-50 rounded-lg p-6">
+                <h3 class="text-sm font-bold text-gray-900 mb-4 flex items-center gap-2">
+                    <svg class="w-4 h-4 text-orange-600" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3zM16 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM6.5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"/>
+                    </svg>
+                    İADE EDİLECEK ÜRÜNLER
+                </h3>
+                <div class="space-y-3">
+                    {% for item in return_request.items.all %}
+                    <div class="flex items-center gap-4 p-4 bg-white border border-gray-200 rounded-lg">
+                        {% if item.order_item.product_image_url %}
+                        <img src="{{ item.order_item.product_image_url }}" class="w-16 h-16 object-cover rounded-lg">
+                        {% elif item.order_item.product.images.first %}
+                        <img src="{{ item.order_item.product.images.first.image.url }}" class="w-16 h-16 object-cover rounded-lg">
+                        {% else %}
+                        <div class="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center text-gray-400">
+                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                            </svg>
+                        </div>
+                        {% endif %}
+                        
+                        <div class="flex-1">
+                            <p class="font-semibold text-gray-900">{{ item.order_item.product_name }}</p>
+                            <p class="text-sm text-gray-500">
+                                Beden: {{ item.order_item.selected_size_name|default:item.order_item.selected_size }}
+                            </p>
+                            <p class="text-sm text-gray-500">
+                                SKU: {{ item.order_item.product_sku }}
+                            </p>
+                        </div>
+                        
+                        <div class="text-center px-4 border-l border-gray-100">
+                            <p class="text-xs text-gray-500 mb-1">İade Adedi</p>
+                            <p class="text-xl font-bold text-gray-900">{{ item.quantity }}</p>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Tab 3: Sipariş Detayları (Read Only) -->
+        <div x-show="tab === 'order'" x-cloak>
+            <div class="grid grid-cols-2 gap-6">
+                <!-- Sol: Finansal -->
+                <div class="bg-gray-50 rounded-lg p-6">
+                    <h3 class="text-sm font-bold text-gray-900 mb-4">SİPARİŞ ÖZETİ</h3>
+                    <dl class="space-y-3">
+                        <div class="flex justify-between">
+                            <dt class="text-sm text-gray-600">Sipariş No</dt>
+                            <dd class="text-sm font-semibold text-gray-900">#{{ return_request.order.id }}</dd>
+                        </div>
+                        <div class="flex justify-between">
+                            <dt class="text-sm text-gray-600">Kampanya</dt>
+                            <dd class="text-sm font-semibold text-gray-900">{{ return_request.order.campaign_title }}</dd>
+                        </div>
+                        <div class="border-t border-gray-200 my-2"></div>
+                        <div class="flex justify-between">
+                            <dt class="text-sm text-gray-600">Kampanya Fiyatı</dt>
+                            <dd class="text-sm font-medium text-gray-900">₺{{ return_request.order.campaign_price|floatformat:2 }}</dd>
+                        </div>
+                        <div class="flex justify-between">
+                            <dt class="text-sm text-gray-600">Kargo</dt>
+                            <dd class="text-sm font-medium text-gray-900">₺{{ return_request.order.cargo_price|floatformat:2 }}</dd>
+                        </div>
+                        <div class="flex justify-between">
+                            <dt class="text-sm text-gray-600">Kapıda Ödeme</dt>
+                            <dd class="text-sm font-medium text-gray-900">₺{{ return_request.order.cod_fee|floatformat:2 }}</dd>
+                        </div>
+                        <div class="border-t border-gray-200 my-2"></div>
+                        <div class="flex justify-between">
+                            <dt class="text-base font-bold text-gray-900">Toplam Tutar</dt>
+                            <dd class="text-base font-bold text-primary">₺{{ return_request.order.total_amount|floatformat:2 }}</dd>
+                        </div>
+                    </dl>
+                </div>
+                
+                <!-- Sağ: Adres -->
+                <div class="bg-gray-50 rounded-lg p-6">
+                    <h3 class="text-sm font-bold text-gray-900 mb-4">TESLİMAT ADRESİ</h3>
+                    <p class="text-sm text-gray-700 leading-relaxed">
+                        {{ return_request.order.full_address }}
+                        <br>
+                        <span class="font-medium">
+                            {{ return_request.order.district_fk.name|default:return_request.order.district }} / 
+                            {{ return_request.order.city_fk.name|default:return_request.order.city }}
+                        </span>
+                    </p>
+                </div>
+            </div>
+        </div>
+        
     </div>
+</div>
+{% endblock %}
 
-    <!-- Actions -->
+{% block modal_footer %}
+<div class="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-200 bg-gray-50">
+    <button @click="closeModal()" 
+            type="button"
+            class="px-6 py-2.5 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors">
+        Kapat
+    </button>
+
     {% if return_request.status == 'pending' %}
-    <form action="{% url 'admin_return_action' return_request.id %}" method="POST" class="space-y-4">
-        {% csrf_token %}
-        <div>
-            <label for="note" class="block text-sm font-medium text-gray-700">Yönetici Notu</label>
-            <textarea name="note" rows="2" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="Müşteriye iletilecek not..."></textarea>
-        </div>
-        <div class="flex gap-3">
-            <button type="submit" name="action" value="approve" class="flex-1 bg-green-600 text-white px-4 py-2 rounded-xl hover:bg-green-700 transition-colors font-medium">
-                Onayla
-            </button>
-            <button type="submit" name="action" value="reject" class="flex-1 bg-red-600 text-white px-4 py-2 rounded-xl hover:bg-red-700 transition-colors font-medium">
-                Reddet
-            </button>
-        </div>
-    </form>
+    <button type="submit" form="return-action-form" name="action" value="reject" 
+            class="flex items-center justify-center gap-2 px-6 py-2.5 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 transition-colors">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+        Reddet
+    </button>
+    <button type="submit" form="return-action-form" name="action" value="approve" 
+            class="flex items-center justify-center gap-2 px-6 py-2.5 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition-colors">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+        </svg>
+        Onayla
+    </button>
     {% elif return_request.status == 'approved' %}
-    <form action="{% url 'admin_return_action' return_request.id %}" method="POST" class="space-y-4">
-        {% csrf_token %}
-        <div>
-            <label for="note" class="block text-sm font-medium text-gray-700">Yönetici Notu</label>
-            <textarea name="note" rows="2" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">{{ return_request.admin_note }}</textarea>
-        </div>
-        <button type="submit" name="action" value="complete" class="w-full bg-blue-600 text-white px-4 py-2 rounded-xl hover:bg-blue-700 transition-colors font-medium">
-            İadeyi Tamamla (Ödeme Yapıldı)
-        </button>
-    </form>
-    {% else %}
-    <div class="bg-gray-50 p-4 rounded-xl">
-        <h4 class="text-sm font-bold text-gray-900 mb-1">Yönetici Notu</h4>
-        <p class="text-sm text-gray-600">{{ return_request.admin_note|default:"-" }}</p>
-    </div>
+    <button type="submit" form="return-action-form" name="action" value="complete" 
+            class="flex items-center justify-center gap-2 px-6 py-2.5 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+        İadeyi Tamamla (Ödeme Yapıldı)
+    </button>
     {% endif %}
 </div>
+{% endblock %}

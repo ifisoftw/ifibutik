@@ -78,6 +78,7 @@ urlpatterns = [
 
     # Returns
     path('returns/', return_views.return_list, name='admin_returns'),
+    path('returns/bulk-action/', return_views.return_bulk_action, name='admin_return_bulk_action'),
     path('returns/<int:return_id>/', return_views.return_detail, name='admin_return_detail'),
     path('returns/<int:return_id>/action/', return_views.return_action, name='admin_return_action'),
 
