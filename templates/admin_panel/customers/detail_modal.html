@@ -1,0 +1,77 @@
+<div class="p-6">
+    <!-- Header -->
+    <div class="flex items-center justify-between mb-6">
+        <div>
+            <h3 class="text-xl font-bold text-gray-900">{{ customer.name }}</h3>
+            <p class="text-sm text-gray-500">{{ customer.phone }}</p>
+        </div>
+        <button @click="detailModalOpen = false" class="text-gray-400 hover:text-gray-600 transition-colors">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+        </button>
+    </div>
+
+    <!-- Stats Grid -->
+    <div class="grid grid-cols-2 gap-4 mb-6">
+        <div class="bg-blue-50 rounded-xl p-4">
+            <div class="text-sm text-blue-600 font-medium mb-1">Toplam Sipariş</div>
+            <div class="text-2xl font-bold text-blue-900">{{ total_orders }}</div>
+        </div>
+        <div class="bg-emerald-50 rounded-xl p-4">
+            <div class="text-sm text-emerald-600 font-medium mb-1">Toplam Harcama</div>
+            <div class="text-2xl font-bold text-emerald-900">{{ total_spent|floatformat:2 }} ₺</div>
+        </div>
+    </div>
+
+    <!-- Address Info -->
+    <div class="bg-gray-50 rounded-xl p-4 mb-6">
+        <h4 class="text-sm font-bold text-gray-900 mb-2 flex items-center gap-2">
+            <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+            </svg>
+            Teslimat Adresi
+        </h4>
+        <p class="text-sm text-gray-600">
+            {{ customer.full_address }}<br>
+            <span class="font-medium text-gray-900">{{ customer.neighborhood }} - {{ customer.district }} / {{ customer.city }}</span>
+        </p>
+    </div>
+
+    <!-- Order History -->
+    <div>
+        <h4 class="text-sm font-bold text-gray-900 mb-3">Sipariş Geçmişi</h4>
+        <div class="space-y-3 max-h-60 overflow-y-auto pr-2">
+            {% for order in orders %}
+            <div class="flex items-center justify-between p-3 bg-white border border-gray-100 rounded-lg hover:border-blue-200 transition-colors">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-lg flex items-center justify-center 
+                        {% if order.status == 'delivered' %}bg-green-100 text-green-600
+                        {% elif order.status == 'cancelled' %}bg-red-100 text-red-600
+                        {% elif order.status == 'shipped' %}bg-blue-100 text-blue-600
+                        {% else %}bg-yellow-100 text-yellow-600{% endif %}">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <div class="text-sm font-medium text-gray-900">Sipariş #{{ order.id }}</div>
+                        <div class="text-xs text-gray-500">{{ order.created_at|date:"d.m.Y H:i" }}</div>
+                    </div>
+                </div>
+                <div class="text-right">
+                    <div class="text-sm font-bold text-gray-900">{{ order.total_amount|floatformat:2 }} ₺</div>
+                    <div class="text-xs font-medium 
+                        {% if order.status == 'delivered' %}text-green-600
+                        {% elif order.status == 'cancelled' %}text-red-600
+                        {% elif order.status == 'shipped' %}text-blue-600
+                        {% else %}text-yellow-600{% endif %}">
+                        {{ order.get_status_display }}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>

@@ -1,13 +1,17 @@
 from django.urls import path
 from .views import auth as auth_views
-from .views import dashboard as dashboard_views
-from .views import campaigns as campaign_views
-from .views import products as product_views
-from .views import orders as order_views
-from .views import reports as report_views
+from .views import (
+    dashboard as dashboard_views,
+    products as product_views,
+    campaigns as campaign_views,
+    orders as order_views,
+    reports as report_views,
+    settings as settings_views,
+    faq as faq_views,
+    customers as customer_views,
+    returns as return_views
+)
 from .views import sizes as size_views
-from .views import settings as settings_views
-from .views import faq as faq_views
 
 urlpatterns = [
     # Authentication
@@ -66,6 +70,17 @@ urlpatterns = [
     
     # Reports
     path('reports/', report_views.reports, name='admin_reports'),
+
+    # Customers
+    path('customers/', customer_views.customer_list, name='admin_customers'),
+    path('customers/export/', customer_views.customer_export, name='admin_customers_export'),
+    path('customers/<str:phone>/', customer_views.customer_detail, name='admin_customer_detail'),
+
+    # Returns
+    path('returns/', return_views.return_list, name='admin_returns'),
+    path('returns/<int:return_id>/', return_views.return_detail, name='admin_return_detail'),
+    path('returns/<int:return_id>/action/', return_views.return_action, name='admin_return_action'),
+
     path('reports/export/', report_views.export_excel, name='admin_reports_export'),
 
     # Sizes

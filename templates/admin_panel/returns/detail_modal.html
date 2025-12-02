@@ -1,0 +1,108 @@
+<div class="p-6">
+    <!-- Header -->
+    <div class="flex items-center justify-between mb-6">
+        <div>
+            <h3 class="text-xl font-bold text-gray-900">İade Talebi #{{ return_request.id }}</h3>
+            <p class="text-sm text-gray-500">{{ return_request.created_at|date:"d.m.Y H:i" }}</p>
+        </div>
+        <button @click="detailModalOpen = false" class="text-gray-400 hover:text-gray-600 transition-colors">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+        </button>
+    </div>
+
+    <!-- Customer & Order Info -->
+    <div class="grid grid-cols-2 gap-4 mb-6">
+        <div class="bg-gray-50 rounded-xl p-4">
+            <h4 class="text-xs font-bold text-gray-500 uppercase mb-2">Müşteri Bilgileri</h4>
+            <div class="font-bold text-gray-900">{{ return_request.order.customer_name }}</div>
+            <div class="text-sm text-gray-600">{{ return_request.order.phone }}</div>
+        </div>
+        <div class="bg-gray-50 rounded-xl p-4">
+            <h4 class="text-xs font-bold text-gray-500 uppercase mb-2">Sipariş Bilgileri</h4>
+            <div class="font-bold text-gray-900">Sipariş #{{ return_request.order.id }}</div>
+            <div class="text-sm text-gray-600">{{ return_request.order.total_amount }} ₺</div>
+        </div>
+    </div>
+
+    <!-- Return Details -->
+    <div class="mb-6">
+        <h4 class="text-sm font-bold text-gray-900 mb-3">İade Detayları</h4>
+        <div class="bg-white border border-gray-200 rounded-xl p-4 space-y-3">
+            <div class="flex justify-between">
+                <span class="text-gray-600">İade Nedeni:</span>
+                <span class="font-medium text-gray-900">{{ return_request.get_reason_display }}</span>
+            </div>
+            <div class="flex justify-between">
+                <span class="text-gray-600">IBAN:</span>
+                <span class="font-mono font-medium text-gray-900 bg-gray-100 px-2 py-1 rounded">{{ return_request.iban }}</span>
+            </div>
+            <div class="flex justify-between">
+                <span class="text-gray-600">Durum:</span>
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                    {% if return_request.status == 'pending' %}bg-yellow-100 text-yellow-800
+                    {% elif return_request.status == 'approved' %}bg-green-100 text-green-800
+                    {% elif return_request.status == 'rejected' %}bg-red-100 text-red-800
+                    {% else %}bg-blue-100 text-blue-800{% endif %}">
+                    {{ return_request.get_status_display }}
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Return Items -->
+    <div class="mb-6">
+        <h4 class="text-sm font-bold text-gray-900 mb-3">İade Edilecek Ürünler</h4>
+        <div class="space-y-2">
+            {% for item in return_request.items.all %}
+            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 bg-white rounded-lg flex items-center justify-center border border-gray-200 text-xs font-bold text-gray-500">
+                        {{ item.quantity }}x
+                    </div>
+                    <div>
+                        <div class="text-sm font-medium text-gray-900">{{ item.order_item.product_name }}</div>
+                        <div class="text-xs text-gray-500">{{ item.order_item.selected_size_name }}</div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Actions -->
+    {% if return_request.status == 'pending' %}
+    <form action="{% url 'admin_return_action' return_request.id %}" method="POST" class="space-y-4">
+        {% csrf_token %}
+        <div>
+            <label for="note" class="block text-sm font-medium text-gray-700">Yönetici Notu</label>
+            <textarea name="note" rows="2" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="Müşteriye iletilecek not..."></textarea>
+        </div>
+        <div class="flex gap-3">
+            <button type="submit" name="action" value="approve" class="flex-1 bg-green-600 text-white px-4 py-2 rounded-xl hover:bg-green-700 transition-colors font-medium">
+                Onayla
+            </button>
+            <button type="submit" name="action" value="reject" class="flex-1 bg-red-600 text-white px-4 py-2 rounded-xl hover:bg-red-700 transition-colors font-medium">
+                Reddet
+            </button>
+        </div>
+    </form>
+    {% elif return_request.status == 'approved' %}
+    <form action="{% url 'admin_return_action' return_request.id %}" method="POST" class="space-y-4">
+        {% csrf_token %}
+        <div>
+            <label for="note" class="block text-sm font-medium text-gray-700">Yönetici Notu</label>
+            <textarea name="note" rows="2" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">{{ return_request.admin_note }}</textarea>
+        </div>
+        <button type="submit" name="action" value="complete" class="w-full bg-blue-600 text-white px-4 py-2 rounded-xl hover:bg-blue-700 transition-colors font-medium">
+            İadeyi Tamamla (Ödeme Yapıldı)
+        </button>
+    </form>
+    {% else %}
+    <div class="bg-gray-50 p-4 rounded-xl">
+        <h4 class="text-sm font-bold text-gray-900 mb-1">Yönetici Notu</h4>
+        <p class="text-sm text-gray-600">{{ return_request.admin_note|default:"-" }}</p>
+    </div>
+    {% endif %}
+</div>

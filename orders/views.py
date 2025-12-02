@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse, JsonResponse
-from .models import Order, OrderItem
+from .models import Order, OrderItem, ReturnRequest, ReturnItem
 from campaigns.models import Campaign, SizeOption, CampaignProduct
 from products.models import Product
 from addresses.models import City, District, Neighborhood
@@ -226,7 +226,7 @@ def social_proof_api(request):
     if not recent_orders.exists():
         # Fallback if no orders exist yet
         return JsonResponse({}, status=404)
-    
+
     # Pick a random order
     order = random.choice(recent_orders)
     
@@ -305,3 +305,64 @@ def social_proof_api(request):
     }
     
     return JsonResponse(data)
+
+def return_lookup(request):
+    if request.method == 'POST':
+        order_id = request.POST.get('order_id')
+        phone = request.POST.get('phone')
+        
+        try:
+            order = Order.objects.get(id=order_id, phone=phone)
+            # Check if already returned or cancelled
+            if order.status in ['cancelled', 'return']:
+                messages.error(request, 'Bu sipariş için iade talebi oluşturulamaz (İptal veya İade edilmiş).')
+            else:
+                # Store in session for the next step
+                request.session['return_order_id'] = order.id
+                return redirect('return_create')
+        except Order.DoesNotExist:
+            messages.error(request, 'Sipariş bulunamadı. Bilgileri kontrol ediniz.')
+            
+    return render(request, 'orders/return_lookup.html')
+
+def return_create(request):
+    order_id = request.session.get('return_order_id')
+    if not order_id:
+        return redirect('return_lookup')
+        
+    order = get_object_or_404(Order, id=order_id)
+    
+    if request.method == 'POST':
+        iban = request.POST.get('iban')
+        reason = request.POST.get('reason')
+        selected_items = request.POST.getlist('items')
+        
+        if not iban or not reason or not selected_items:
+            messages.error(request, 'Lütfen tüm alanları doldurunuz.')
+        else:
+            # Create Return Request
+            return_request = ReturnRequest.objects.create(
+                order=order,
+                reason=reason,
+                iban=iban,
+                status='pending'
+            )
+            
+            # Create Return Items
+            for item_id in selected_items:
+                quantity = int(request.POST.get(f'qty_{item_id}', 1))
+                order_item = OrderItem.objects.get(id=item_id)
+                ReturnItem.objects.create(
+                    return_request=return_request,
+                    order_item=order_item,
+                    quantity=quantity
+                )
+            
+            # Clear session
+            del request.session['return_order_id']
+            return redirect('return_success')
+
+    return render(request, 'orders/return_create.html', {'order': order})
+
+def return_success(request):
+    return render(request, 'orders/return_success.html')

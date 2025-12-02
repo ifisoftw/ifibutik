@@ -1,0 +1,166 @@
+{% extends 'admin_panel/base.html' %}
+
+{% block title %}İade Talepleri{% endblock %}
+
+{% block page_title %}
+<div class="flex items-center gap-3">
+    <div class="w-10 h-10 bg-gradient-to-br from-red-400 to-red-600 rounded-xl flex items-center justify-center shadow-lg">
+        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 15v-1a4 4 0 00-4-4H8m0 0l3 3m-3-3l3-3m9 14V5a2 2 0 00-2-2H6a2 2 0 00-2 2v16l4-2 4 2 4-2 4 2z"></path>
+        </svg>
+    </div>
+    <div>
+        <h1 class="text-2xl font-black text-gray-900">İade Talepleri</h1>
+        <p class="text-sm text-gray-500 font-medium">Müşteri iade taleplerini yönetin</p>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div x-data="{ 
+        detailModalOpen: false,
+        detailContent: '',
+        openDetail(id) {
+            fetch(`/panel/returns/${id}/`)
+                .then(res => res.text())
+                .then(html => {
+                    this.detailContent = html;
+                    this.detailModalOpen = true;
+                });
+        }
+    }">
+
+    <!-- Statistics Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        <!-- Toplam İade -->
+        {% include 'admin_panel/components/stats_card.html' with label='Toplam İade' value=stats.total color='blue' sub_label='Tüm zamanlar' icon='<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 15v-1a4 4 0 00-4-4H8m0 0l3 3m-3-3l3-3m9 14V5a2 2 0 00-2-2H6a2 2 0 00-2 2v16l4-2 4 2 4-2 4 2z"></path></svg>' %}
+        
+        <!-- Bekleyen -->
+        {% include 'admin_panel/components/stats_card.html' with label='Bekleyen' value=stats.pending color='yellow' sub_label='Onay bekleyen' icon='<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>' %}
+        
+        <!-- Onaylanan -->
+        {% include 'admin_panel/components/stats_card.html' with label='Onaylanan' value=stats.approved color='green' sub_label='İşlemde olan' icon='<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>' %}
+        
+        <!-- Reddedilen -->
+        {% include 'admin_panel/components/stats_card.html' with label='Reddedilen' value=stats.rejected color='red' sub_label='İptal edilen' icon='<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>' %}
+    </div>
+
+    <!-- Filters -->
+    <div class="flex gap-2 mb-6 overflow-x-auto pb-2">
+        <a href="{% url 'admin_returns' %}" 
+           class="px-4 py-2 rounded-xl text-sm font-medium transition-colors {% if not current_status %}bg-gray-900 text-white shadow-lg{% else %}bg-white text-gray-600 hover:bg-gray-50{% endif %}">
+            Tümü
+        </a>
+        <a href="?status=pending" 
+           class="px-4 py-2 rounded-xl text-sm font-medium transition-colors {% if current_status == 'pending' %}bg-yellow-500 text-white shadow-lg{% else %}bg-white text-gray-600 hover:bg-gray-50{% endif %}">
+            Bekleyenler
+        </a>
+        <a href="?status=approved" 
+           class="px-4 py-2 rounded-xl text-sm font-medium transition-colors {% if current_status == 'approved' %}bg-green-500 text-white shadow-lg{% else %}bg-white text-gray-600 hover:bg-gray-50{% endif %}">
+            Onaylananlar
+        </a>
+        <a href="?status=rejected" 
+           class="px-4 py-2 rounded-xl text-sm font-medium transition-colors {% if current_status == 'rejected' %}bg-red-500 text-white shadow-lg{% else %}bg-white text-gray-600 hover:bg-gray-50{% endif %}">
+            Reddedilenler
+        </a>
+        <a href="?status=completed" 
+           class="px-4 py-2 rounded-xl text-sm font-medium transition-colors {% if current_status == 'completed' %}bg-blue-500 text-white shadow-lg{% else %}bg-white text-gray-600 hover:bg-gray-50{% endif %}">
+            Tamamlananlar
+        </a>
+    </div>
+
+    <div class="glass-card rounded-2xl overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead>
+                    <tr class="bg-gray-50/50 border-b border-gray-100 text-left">
+                        <th class="py-4 px-6 text-xs font-bold text-gray-500 uppercase tracking-wider">Talep ID</th>
+                        <th class="py-4 px-6 text-xs font-bold text-gray-500 uppercase tracking-wider">Sipariş</th>
+                        <th class="py-4 px-6 text-xs font-bold text-gray-500 uppercase tracking-wider">Müşteri</th>
+                        <th class="py-4 px-6 text-xs font-bold text-gray-500 uppercase tracking-wider">Neden</th>
+                        <th class="py-4 px-6 text-xs font-bold text-gray-500 uppercase tracking-wider">Durum</th>
+                        <th class="py-4 px-6 text-xs font-bold text-gray-500 uppercase tracking-wider">Tarih</th>
+                        <th class="py-4 px-6 w-10"></th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                    {% for return_req in returns %}
+                    <tr class="hover:bg-gray-50/50 transition-colors group">
+                        <td class="py-4 px-6 font-medium text-gray-900">#{{ return_req.id }}</td>
+                        <td class="py-4 px-6">
+                            <a href="{% url 'admin_order_detail' return_req.order.id %}" class="text-blue-600 hover:underline">
+                                #{{ return_req.order.id }}
+                            </a>
+                        </td>
+                        <td class="py-4 px-6">
+                            <div class="font-medium text-gray-900">{{ return_req.order.customer_name }}</div>
+                            <div class="text-xs text-gray-500">{{ return_req.order.phone }}</div>
+                        </td>
+                        <td class="py-4 px-6">
+                            <span class="text-sm text-gray-700">{{ return_req.get_reason_display }}</span>
+                        </td>
+                        <td class="py-4 px-6">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                                {% if return_req.status == 'pending' %}bg-yellow-100 text-yellow-800
+                                {% elif return_req.status == 'approved' %}bg-green-100 text-green-800
+                                {% elif return_req.status == 'rejected' %}bg-red-100 text-red-800
+                                {% else %}bg-blue-100 text-blue-800{% endif %}">
+                                {{ return_req.get_status_display }}
+                            </span>
+                        </td>
+                        <td class="py-4 px-6 text-sm text-gray-500">
+                            {{ return_req.created_at|date:"d.m.Y H:i" }}
+                        </td>
+                        <td class="py-4 px-6">
+                            <button @click="openDetail({{ return_req.id }})" 
+                                    class="text-gray-400 hover:text-blue-600 transition-colors p-2 hover:bg-blue-50 rounded-lg">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                </svg>
+                            </button>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="py-12 text-center text-gray-500">
+                            Henüz iade talebi bulunmuyor.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Detail Modal -->
+    <div x-show="detailModalOpen" class="fixed inset-0 z-50 overflow-y-auto" style="display: none;">
+        <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+            <div x-show="detailModalOpen" 
+                 x-transition:enter="ease-out duration-300"
+                 x-transition:enter-start="opacity-0"
+                 x-transition:enter-end="opacity-100"
+                 x-transition:leave="ease-in duration-200"
+                 x-transition:leave-start="opacity-100"
+                 x-transition:leave-end="opacity-0"
+                 class="fixed inset-0 transition-opacity" aria-hidden="true">
+                <div class="absolute inset-0 bg-gray-500 opacity-75" @click="detailModalOpen = false"></div>
+            </div>
+
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+
+            <div x-show="detailModalOpen" 
+                 x-transition:enter="ease-out duration-300"
+                 x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                 x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+                 x-transition:leave="ease-in duration-200"
+                 x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
+                 x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                 class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full"
+                 x-html="detailContent">
+                <!-- Content loaded via fetch -->
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

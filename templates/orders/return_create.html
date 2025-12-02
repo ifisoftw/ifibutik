@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+    <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+        <div class="px-4 py-5 sm:px-6">
+            <h3 class="text-lg leading-6 font-medium text-gray-900">
+                İade Talebi Oluştur
+            </h3>
+            <p class="mt-1 max-w-2xl text-sm text-gray-500">
+                Sipariş #{{ order.id }} - {{ order.created_at|date:"d.m.Y" }}
+            </p>
+        </div>
+        
+        <form action="{% url 'return_create' %}" method="POST" class="border-t border-gray-200 px-4 py-5 sm:p-0">
+            {% csrf_token %}
+            
+            <!-- Items Selection -->
+            <div class="px-4 py-5 sm:px-6">
+                <h4 class="text-md font-medium text-gray-900 mb-4">İade Edilecek Ürünleri Seçin</h4>
+                <div class="space-y-4">
+                    {% for item in order.items.all %}
+                    <div class="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50">
+                        <div class="flex items-center h-5">
+                            <input id="item_{{ item.id }}" name="items" value="{{ item.id }}" type="checkbox" 
+                                   class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded">
+                        </div>
+                        <div class="ml-3 flex-1 flex items-center justify-between">
+                            <label for="item_{{ item.id }}" class="font-medium text-gray-700">
+                                {{ item.product_name }}
+                                <span class="text-gray-500 text-sm block">{{ item.selected_size_name }}</span>
+                            </label>
+                            <div class="flex items-center gap-2">
+                                <span class="text-sm text-gray-500">Adet:</span>
+                                <select name="qty_{{ item.id }}" class="text-sm border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                                    {% for i in "x"|rjust:item.quantity|make_list %}
+                                    <option value="{{ forloop.counter }}">{{ forloop.counter }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Reason & IBAN -->
+            <div class="px-4 py-5 sm:px-6 space-y-6 bg-gray-50">
+                <div>
+                    <label for="reason" class="block text-sm font-medium text-gray-700">İade Nedeni</label>
+                    <select id="reason" name="reason" required 
+                            class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
+                        <option value="">Seçiniz...</option>
+                        <option value="size_mismatch">Beden Uymadı</option>
+                        <option value="defective">Kusurlu Ürün</option>
+                        <option value="wrong_item">Yanlış Ürün</option>
+                        <option value="changed_mind">Vazgeçtim</option>
+                        <option value="other">Diğer</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label for="iban" class="block text-sm font-medium text-gray-700">IBAN Numarası (TR ile başlayan 26 hane)</label>
+                    <div class="mt-1 relative rounded-md shadow-sm">
+                        <input type="text" name="iban" id="iban" required 
+                               class="focus:ring-indigo-500 focus:border-indigo-500 block w-full pl-4 sm:text-sm border-gray-300 rounded-md" 
+                               placeholder="TR00 0000 0000 0000 0000 0000 00">
+                    </div>
+                    <p class="mt-2 text-sm text-gray-500">
+                        Ücret iadesi bu IBAN numarasına yapılacaktır. Lütfen doğruluğundan emin olunuz.
+                    </p>
+                </div>
+            </div>
+
+            <div class="px-4 py-5 sm:px-6 flex justify-end">
+                <button type="submit" class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    İade Talebini Gönder
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

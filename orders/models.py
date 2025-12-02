@@ -78,3 +78,47 @@ class OrderItem(models.Model):
 
     def __str__(self):
         return f"{self.quantity}x {self.product.name} - Sipariş #{self.order.id}"
+
+class ReturnRequest(models.Model):
+    STATUS_CHOICES = (
+        ('pending', 'Beklemede'),
+        ('approved', 'Onaylandı'),
+        ('rejected', 'Reddedildi'),
+        ('completed', 'Tamamlandı'),
+    )
+
+    REASON_CHOICES = (
+        ('size_mismatch', 'Beden Uymadı'),
+        ('defective', 'Kusurlu Ürün'),
+        ('wrong_item', 'Yanlış Ürün'),
+        ('changed_mind', 'Vazgeçtim'),
+        ('other', 'Diğer'),
+    )
+
+    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='return_requests', verbose_name="Sipariş")
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending', verbose_name="Durum")
+    reason = models.CharField(max_length=50, choices=REASON_CHOICES, verbose_name="İade Nedeni")
+    iban = models.CharField(max_length=34, verbose_name="IBAN Numarası")
+    admin_note = models.TextField(blank=True, null=True, verbose_name="Yönetici Notu")
+    
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Oluşturulma Tarihi")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="Güncellenme Tarihi")
+
+    class Meta:
+        verbose_name = "İade Talebi"
+        verbose_name_plural = "İade Talepleri"
+
+    def __str__(self):
+        return f"İade #{self.id} - Sipariş #{self.order.id}"
+
+class ReturnItem(models.Model):
+    return_request = models.ForeignKey(ReturnRequest, on_delete=models.CASCADE, related_name='items', verbose_name="İade Talebi")
+    order_item = models.ForeignKey(OrderItem, on_delete=models.CASCADE, verbose_name="Sipariş Ürünü")
+    quantity = models.IntegerField(default=1, verbose_name="İade Adedi")
+
+    class Meta:
+        verbose_name = "İade Ürünü"
+        verbose_name_plural = "İade Ürünleri"
+
+    def __str__(self):
+        return f"{self.quantity}x {self.order_item.product_name} - İade #{self.return_request.id}"

@@ -1,0 +1,173 @@
+{% extends 'admin_panel/base.html' %}
+
+{% block title %}Müşteriler{% endblock %}
+
+{% block page_title %}
+<div class="flex items-center gap-3">
+    <div class="w-10 h-10 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg">
+        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0z"></path>
+        </svg>
+    </div>
+    <div>
+        <h1 class="text-2xl font-black text-gray-900">Müşteriler</h1>
+        <p class="text-sm text-gray-500 font-medium">Siparişlerden elde edilen müşteri listesi</p>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div x-data="{ 
+        selectedItems: [],
+        selectAll: false,
+        detailModalOpen: false,
+        detailContent: '',
+        toggleAll() {
+            if (this.selectAll) {
+                this.selectedItems = [...document.querySelectorAll('.customer-checkbox').values()].map(el => el.value);
+            } else {
+                this.selectedItems = [];
+            }
+        },
+        openDetail(phone) {
+            fetch(`/panel/customers/${phone}/`)
+                .then(res => res.text())
+                .then(html => {
+                    this.detailContent = html;
+                    this.detailModalOpen = true;
+                });
+        },
+        exportSelected() {
+            if (this.selectedItems.length === 0) return;
+            window.location.href = `{% url 'admin_customers_export' %}?selected_phones=${this.selectedItems.join(',')}`;
+        }
+    }">
+
+    <!-- Actions Bar -->
+    <div class="flex justify-end gap-3 mb-6">
+        <button @click="exportSelected()" 
+                x-show="selectedItems.length > 0"
+                x-transition
+                class="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors shadow-sm">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+            </svg>
+            Seçilenleri Dışa Aktar (<span x-text="selectedItems.length"></span>)
+        </button>
+        
+        <a href="{% url 'admin_customers_export' %}" 
+           class="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 transition-colors shadow-lg shadow-emerald-200">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+            </svg>
+            Tümünü Dışa Aktar
+        </a>
+    </div>
+
+    <div class="glass-card rounded-2xl overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead>
+                    <tr class="bg-gray-50/50 border-b border-gray-100 text-left">
+                        <th class="py-4 px-6 w-10">
+                            <input type="checkbox" 
+                                   @change="selectAll = $el.checked; 
+                                            document.querySelectorAll('.customer-checkbox').forEach(el => el.checked = selectAll);
+                                            toggleAll()"
+                                   class="rounded border-gray-300 text-emerald-600 focus:ring-emerald-500">
+                        </th>
+                        <th class="py-4 px-6 text-xs font-bold text-gray-500 uppercase tracking-wider">Müşteri</th>
+                        <th class="py-4 px-6 text-xs font-bold text-gray-500 uppercase tracking-wider">Konum</th>
+                        <th class="py-4 px-6 text-xs font-bold text-gray-500 uppercase tracking-wider">Toplam Sipariş</th>
+                        <th class="py-4 px-6 text-xs font-bold text-gray-500 uppercase tracking-wider">Toplam Harcama</th>
+                        <th class="py-4 px-6 text-xs font-bold text-gray-500 uppercase tracking-wider">Son Sipariş</th>
+                        <th class="py-4 px-6 w-10"></th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                    {% for customer in customers %}
+                    <tr class="hover:bg-gray-50/50 transition-colors group">
+                        <td class="py-4 px-6">
+                            <input type="checkbox" value="{{ customer.phone }}" 
+                                   @change="if($el.checked) selectedItems.push($el.value); else selectedItems = selectedItems.filter(i => i !== $el.value)"
+                                   class="customer-checkbox rounded border-gray-300 text-emerald-600 focus:ring-emerald-500">
+                        </td>
+                        <td class="py-4 px-6">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold text-sm">
+                                    {{ customer.customer_name|make_list|first|upper }}
+                                </div>
+                                <div>
+                                    <div class="font-bold text-gray-900">{{ customer.customer_name }}</div>
+                                    <div class="text-xs text-gray-500">{{ customer.phone }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="py-4 px-6">
+                            <div class="text-sm text-gray-900">{{ customer.city }}</div>
+                            <div class="text-xs text-gray-500">{{ customer.district }}</div>
+                        </td>
+                        <td class="py-4 px-6">
+                            <div class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                {{ customer.total_orders }} Sipariş
+                            </div>
+                        </td>
+                        <td class="py-4 px-6">
+                            <div class="font-bold text-gray-900">{{ customer.total_spent|floatformat:2 }} ₺</div>
+                        </td>
+                        <td class="py-4 px-6">
+                            <div class="text-sm text-gray-500">{{ customer.last_order_date|date:"d.m.Y H:i" }}</div>
+                        </td>
+                        <td class="py-4 px-6">
+                            <button @click="openDetail('{{ customer.phone }}')" 
+                                    class="text-gray-400 hover:text-blue-600 transition-colors p-2 hover:bg-blue-50 rounded-lg">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                </svg>
+                            </button>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="py-12 text-center text-gray-500">
+                            Henüz müşteri kaydı bulunmuyor.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Detail Modal -->
+    <div x-show="detailModalOpen" class="fixed inset-0 z-50 overflow-y-auto" style="display: none;">
+        <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+            <div x-show="detailModalOpen" 
+                 x-transition:enter="ease-out duration-300"
+                 x-transition:enter-start="opacity-0"
+                 x-transition:enter-end="opacity-100"
+                 x-transition:leave="ease-in duration-200"
+                 x-transition:leave-start="opacity-100"
+                 x-transition:leave-end="opacity-0"
+                 class="fixed inset-0 transition-opacity" aria-hidden="true">
+                <div class="absolute inset-0 bg-gray-500 opacity-75" @click="detailModalOpen = false"></div>
+            </div>
+
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+
+            <div x-show="detailModalOpen" 
+                 x-transition:enter="ease-out duration-300"
+                 x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                 x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+                 x-transition:leave="ease-in duration-200"
+                 x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
+                 x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                 class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full"
+                 x-html="detailContent">
+                <!-- Content loaded via fetch -->
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
