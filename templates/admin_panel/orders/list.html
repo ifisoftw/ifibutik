@@ -41,68 +41,16 @@
     <!-- Statistics Cards -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <!-- Toplam Sipariş -->
-        <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-xs font-medium text-gray-500 uppercase">Toplam Sipariş</p>
-                    <p class="text-2xl font-bold text-gray-900 mt-1">{{ stats.total }}</p>
-                </div>
-                <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                    <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
-                    </svg>
-                </div>
-            </div>
-        </div>
+        {% include 'admin_panel/components/stats_card.html' with label='Toplam Sipariş' value=stats.total color='blue' sub_label='Toplam sipariş adeti' icon='<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>' %}
         
         <!-- Bekleyen Siparişler -->
-        <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-xs font-medium text-gray-500 uppercase">Bekleyen</p>
-                    <p class="text-2xl font-bold text-gray-900 mt-1">{{ stats.pending }}</p>
-                    <p class="text-xs text-amber-600 mt-1">Yeni siparişler</p>
-                </div>
-                <div class="w-12 h-12 bg-amber-100 rounded-lg flex items-center justify-center">
-                    <svg class="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                    </svg>
-                </div>
-            </div>
-        </div>
+        {% include 'admin_panel/components/stats_card.html' with label='Bekleyen' value=stats.pending sub_label='Yeni siparişler' sub_text_color='text-amber-600' color='amber' icon='<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>' %}
         
         <!-- Kargodaki Siparişler -->
-        <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-xs font-medium text-gray-500 uppercase">Kargoda</p>
-                    <p class="text-2xl font-bold text-gray-900 mt-1">{{ stats.shipped }}</p>
-                    <p class="text-xs text-blue-600 mt-1">Yolda</p>
-                </div>
-                <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                    <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z"></path>
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0"></path>
-                    </svg>
-                </div>
-            </div>
-        </div>
+        {% include 'admin_panel/components/stats_card.html' with label='Kargoda' value=stats.shipped sub_label='Yolda' sub_text_color='text-blue-600' color='green' icon='<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0"></path></svg>' %}
         
         <!-- Bugünün Geliri -->
-        <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-xs font-medium text-gray-500 uppercase">Bugünün Geliri</p>
-                    <p class="text-2xl font-bold text-gray-900 mt-1">₺{{ stats.today_revenue|floatformat:0 }}</p>
-                    <p class="text-xs text-emerald-600 mt-1">{{ stats.today }} sipariş</p>
-                </div>
-                <div class="w-12 h-12 bg-emerald-100 rounded-lg flex items-center justify-center">
-                    <svg class="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                    </svg>
-                </div>
-            </div>
-        </div>
+        {% include 'admin_panel/components/stats_card.html' with label='Bugünün Geliri' value=stats.today_revenue|floatformat:0|add:" ₺" sub_label="Bugün" sub_value=stats.today|add:" sipariş" sub_text_color='text-emerald-600' color='emerald' icon='<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>' %}
     </div>
 
     <!-- Additional Stats Row -->

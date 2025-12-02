@@ -40,47 +40,11 @@
 
     <!-- Statistics Cards -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-xs font-medium text-gray-500 uppercase">Toplam Beden</p>
-                    <p class="text-2xl font-bold text-gray-900 mt-1">{{ stats.total }}</p>
-                </div>
-                <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                    <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path>
-                    </svg>
-                </div>
-            </div>
-        </div>
+        {% include 'admin_panel/components/stats_card.html' with label='Toplam Beden' value=stats.total color='blue' icon='<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path></svg>' %}
         
-        <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-xs font-medium text-gray-500 uppercase">Aktif Beden</p>
-                    <p class="text-2xl font-bold text-gray-900 mt-1">{{ stats.active }}</p>
-                </div>
-                <div class="w-12 h-12 bg-emerald-100 rounded-lg flex items-center justify-center">
-                    <svg class="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                    </svg>
-                </div>
-            </div>
-        </div>
+        {% include 'admin_panel/components/stats_card.html' with label='Aktif Beden' value=stats.active color='emerald' icon='<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>' %}
         
-        <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-xs font-medium text-gray-500 uppercase">Pasif Beden</p>
-                    <p class="text-2xl font-bold text-gray-900 mt-1">{{ stats.inactive }}</p>
-                </div>
-                <div class="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
-                    <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"></path>
-                    </svg>
-                </div>
-            </div>
-        </div>
+        {% include 'admin_panel/components/stats_card.html' with label='Pasif Beden' value=stats.inactive color='gray' icon='<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"></path></svg>' %}
     </div>
 
     <!-- Bulk Actions Bar -->
