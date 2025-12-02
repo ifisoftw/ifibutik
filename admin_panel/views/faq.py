@@ -1,4 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
+from django.http import JsonResponse
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_http_methods
@@ -73,8 +74,39 @@ def faq_toggle(request, pk):
     if request.headers.get('HX-Request'):
         # Return the updated button HTML
         from django.template.loader import render_to_string
-        return render(request, 'admin_panel/partials/faq_toggle_button.html', {'faq': faq})
+        import json
+        
+        response = render(request, 'admin_panel/partials/faq_toggle_button.html', {'faq': faq})
+        
+        # Trigger toast notification
+        status_text = 'aktif' if faq.is_active else 'pasif'
+        toast_type = 'success' if faq.is_active else 'warning'
+        
+        trigger_data = {
+            'showToast': {
+                'message': f'SSS durumu {status_text} olarak güncellendi.',
+                'type': toast_type
+            }
+        }
+        response['HX-Trigger'] = json.dumps(trigger_data)
+        return response
     
     status_text = 'aktif' if faq.is_active else 'pasif'
     messages.success(request, f'SSS durumu {status_text} olarak güncellendi.')
     return redirect('admin_settings')
+
+@login_required
+@admin_required('manage_settings')
+@require_http_methods(["POST"])
+def faq_reorder(request):
+    import json
+    try:
+        data = json.loads(request.body)
+        order_list = data.get('order', [])
+        
+        for index, faq_id in enumerate(order_list):
+            FAQ.objects.filter(id=faq_id).update(order=index)
+            
+        return JsonResponse({'status': 'success'})
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=400)

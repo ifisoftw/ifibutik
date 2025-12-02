@@ -1,4 +1,5 @@
 from django.shortcuts import render, redirect
+from django.http import JsonResponse
 import os
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -82,6 +83,10 @@ def settings_view(request):
             messages.error(request, 'Hata: Geçersiz sayı formatı.')
         
         settings.save()
+        
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'status': 'success', 'message': 'Ayarlar başarıyla güncellendi.'})
+            
         messages.success(request, 'Ayarlar başarıyla güncellendi.')
         return redirect('admin_settings')
 

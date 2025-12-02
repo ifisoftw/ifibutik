@@ -23,6 +23,7 @@ urlpatterns = [
     path('settings/faq/<int:pk>/update/', faq_views.faq_update, name='admin_faq_update'),
     path('settings/faq/<int:pk>/delete/', faq_views.faq_delete, name='admin_faq_delete'),
     path('settings/faq/<int:pk>/toggle/', faq_views.faq_toggle, name='admin_faq_toggle'),
+    path('settings/faq/reorder/', faq_views.faq_reorder, name='admin_faq_reorder'),
     
     # Campaigns
     path('campaigns/', campaign_views.campaign_list, name='admin_campaigns'),
