@@ -90,6 +90,10 @@ class SiteSettings(models.Model):
     contentsquare_id = models.CharField(max_length=50, blank=True, verbose_name="ContentSquare ID")
     onesignal_app_id = models.CharField(max_length=100, blank=True, verbose_name="OneSignal App ID")
     facebook_domain_verification = models.CharField(max_length=100, blank=True, verbose_name="Facebook Domain Verification")
+    
+    # Interface Messages
+    info_note_title = models.CharField(max_length=255, default="Kapıda Ödeme Sistemi & İade Hakkı", verbose_name="Bilgi Notu Başlığı")
+    info_note_content = models.TextField(default="Siparişlerinizi 14 gün içinde iade etme hakkınız bulunmaktadır.", verbose_name="Bilgi Notu İçeriği")
 
     # Security
     rate_limit_count = models.PositiveIntegerField(default=5, verbose_name="Rate Limit (Adet)")

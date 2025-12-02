@@ -59,6 +59,10 @@ def settings_view(request):
         settings.onesignal_app_id = request.POST.get('onesignal_app_id', settings.onesignal_app_id)
         settings.facebook_domain_verification = request.POST.get('facebook_domain_verification', settings.facebook_domain_verification)
         
+        # Interface Messages
+        settings.info_note_title = request.POST.get('info_note_title', settings.info_note_title)
+        settings.info_note_content = request.POST.get('info_note_content', settings.info_note_content)
+        
         # Security
         try:
             count = int(request.POST.get('rate_limit_count', settings.rate_limit_count))
