@@ -102,12 +102,16 @@ def dashboard(request):
         chart_data['yesterday_cumulative'].append(current_total_yesterday)
     
     # ====== Kampanya Performansı ======
-    campaign_performance = Campaign.objects.filter(
+    campaign_qs = Campaign.objects.filter(
         is_active=True
     ).annotate(
         sales_count=Count('order', filter=Q(order__created_at__date=today)),
+        total_revenue=Sum('order__total_amount', filter=Q(order__created_at__date=today)),
         yesterday_sales=Count('order', filter=Q(order__created_at__date=yesterday))
-    ).order_by('-sales_count')[:5]
+    )
+    
+    campaign_performance = campaign_qs.order_by('-sales_count')[:5]
+    campaign_performance_revenue = campaign_qs.order_by('-total_revenue')[:5]
     
     # ====== Son Siparişler ======
     recent_orders = Order.objects.select_related(
@@ -176,13 +180,16 @@ def dashboard(request):
     }
     
     # ====== Şehir Performansı ======
-    city_performance = Order.objects.filter(
+    city_qs = Order.objects.filter(
         created_at__date__gte=today - timedelta(days=7),
         city_fk__isnull=False
     ).values('city_fk__name').annotate(
         order_count=Count('id'),
         total_revenue=Sum('total_amount')
-    ).order_by('-order_count')[:10]
+    )
+    
+    city_performance = city_qs.order_by('-order_count')[:10]
+    city_performance_revenue = city_qs.order_by('-total_revenue')[:10]
     
     # ====== Beklenen Siparişler ======
     pending_orders_count = Order.objects.filter(status='new').count()
@@ -216,11 +223,13 @@ def dashboard(request):
         
         # Performance Data
         'campaign_performance': campaign_performance,
+        'campaign_performance_revenue': campaign_performance_revenue,
         'recent_orders': recent_orders,
         'top_products': top_products,
         'hourly_comparison': hourly_comparison,
         'product_stats': product_stats,
         'city_performance': city_performance,
+        'city_performance_revenue': city_performance_revenue,
     }
     
     return render(request, 'admin_panel/dashboard.html', context)

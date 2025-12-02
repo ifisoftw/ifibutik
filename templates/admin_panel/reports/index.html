@@ -174,13 +174,28 @@
         </div>
         
         <div class="grid grid-cols-2 gap-6">
-            <div class="glass-card rounded-2xl">
-                <div class="px-6 py-4 border-b border-gray-200">
-                    <h2 class="text-lg font-bold text-gray-900">Kampanya Bazlı Rapor</h2>
-                    <p class="text-sm text-gray-500">Seçilen tarih aralığına göre</p>
+            <div class="glass-card rounded-2xl" x-data="{ sortBy: 'count' }">
+                <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+                    <div>
+                        <h2 class="text-lg font-bold text-gray-900">Kampanya Bazlı Rapor</h2>
+                        <p class="text-sm text-gray-500">Seçilen tarih aralığına göre</p>
+                    </div>
+                    <div class="flex bg-gray-100 p-1 rounded-lg">
+                        <button @click="sortBy = 'count'" 
+                                :class="sortBy === 'count' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-900'"
+                                class="px-3 py-1.5 text-xs font-semibold rounded-md transition-all">
+                            Sipariş
+                        </button>
+                        <button @click="sortBy = 'revenue'" 
+                                :class="sortBy === 'revenue' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-900'"
+                                class="px-3 py-1.5 text-xs font-semibold rounded-md transition-all">
+                            Ciro
+                        </button>
+                    </div>
                 </div>
                 <div class="p-6">
-                    <div class="space-y-3">
+                    <!-- Sort by Count -->
+                    <div x-show="sortBy === 'count'" class="space-y-3">
                         {% for item in campaign_report %}
                         <div class="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:border-primary transition-colors">
                             <div class="flex items-center gap-3">
@@ -201,16 +216,54 @@
                         <p class="text-center text-gray-400 py-8">Veri bulunamadı</p>
                         {% endfor %}
                     </div>
+
+                    <!-- Sort by Revenue -->
+                    <div x-show="sortBy === 'revenue'" class="space-y-3" style="display: none;">
+                        {% for item in campaign_report_revenue %}
+                        <div class="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:border-primary transition-colors">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center">
+                                    <span class="text-white font-bold text-sm">{{ forloop.counter }}</span>
+                                </div>
+                                <div>
+                                    <p class="font-semibold text-gray-900 text-sm">{{ item.campaign__title }}</p>
+                                    <p class="text-xs text-gray-500">{{ item.order_count }} Sipariş</p>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-lg font-bold text-gray-900">₺{{ item.total_revenue|floatformat:0 }}</p>
+                                <p class="text-xs text-gray-500">Ciro</p>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <p class="text-center text-gray-400 py-8">Veri bulunamadı</p>
+                        {% endfor %}
+                    </div>
                 </div>
             </div>
             
-            <div class="glass-card rounded-2xl">
-                <div class="px-6 py-4 border-b border-gray-200">
-                    <h2 class="text-lg font-bold text-gray-900">Şehir Bazlı Rapor</h2>
-                    <p class="text-sm text-gray-500">Seçilen tarih aralığına göre</p>
+            <div class="glass-card rounded-2xl" x-data="{ sortBy: 'count' }">
+                <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+                    <div>
+                        <h2 class="text-lg font-bold text-gray-900">Şehir Bazlı Rapor</h2>
+                        <p class="text-sm text-gray-500">Seçilen tarih aralığına göre</p>
+                    </div>
+                    <div class="flex bg-gray-100 p-1 rounded-lg">
+                        <button @click="sortBy = 'count'" 
+                                :class="sortBy === 'count' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-900'"
+                                class="px-3 py-1.5 text-xs font-semibold rounded-md transition-all">
+                            Sipariş
+                        </button>
+                        <button @click="sortBy = 'revenue'" 
+                                :class="sortBy === 'revenue' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-900'"
+                                class="px-3 py-1.5 text-xs font-semibold rounded-md transition-all">
+                            Ciro
+                        </button>
+                    </div>
                 </div>
                 <div class="p-6">
-                    <div class="space-y-3">
+                    <!-- Sort by Count -->
+                    <div x-show="sortBy === 'count'" class="space-y-3">
                         {% for item in city_report %}
                         <div class="flex items-center gap-3">
                             <div class="flex-1">
@@ -228,6 +281,26 @@
                         <p class="text-center text-gray-400 py-8">Veri bulunamadı</p>
                         {% endfor %}
                     </div>
+
+                    <!-- Sort by Revenue -->
+                    <div x-show="sortBy === 'revenue'" class="space-y-3" style="display: none;">
+                        {% for item in city_report_revenue %}
+                        <div class="flex items-center gap-3">
+                            <div class="flex-1">
+                                <div class="flex items-center justify-between mb-1">
+                                    <span class="text-sm font-medium text-gray-900">{{ item.city_fk__name }}</span>
+                                    <span class="text-sm font-bold text-gray-900">₺{{ item.total_revenue|floatformat:0 }}</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                    {% widthratio item.total_revenue city_report_revenue.0.total_revenue 100 as percent %}
+                                    <div class="bg-gradient-to-r from-blue-500 to-indigo-600 h-2 rounded-full" style="width: {{ percent }}%"></div>
+                                </div>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <p class="text-center text-gray-400 py-8">Veri bulunamadı</p>
+                        {% endfor %}
+                    </div>
                 </div>
             </div>
         </div>
@@ -235,17 +308,183 @@
 
     <!-- Profitability Tab Content -->
     <div x-show="activeTab === 'profitability'" x-transition.opacity x-cloak>
-        <div class="glass-card rounded-2xl p-12 text-center">
-            <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                </svg>
+        <!-- Input Form -->
+        <div class="mb-6 bg-white border border-gray-200 rounded-xl shadow-sm p-4">
+            <form method="GET" class="flex flex-col md:flex-row items-end gap-4" @submit.prevent="updateProfitability">
+                <!-- Preserve Date Filters -->
+                <input type="hidden" name="start_date" value="{{ start_date|date:'Y-m-d' }}">
+                <input type="hidden" name="end_date" value="{{ end_date|date:'Y-m-d' }}">
+                
+                <div class="w-full md:w-1/4">
+                    <label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Kargo Gidiş Ücreti</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500">₺</span>
+                        <input type="number" step="0.01" name="shipping_cost" value="{{ profitability_data.shipping_cost|stringformat:'s' }}" required
+                            class="w-full pl-7 rounded-lg border-gray-200 focus:ring-primary focus:border-primary">
+                    </div>
+                </div>
+
+                <div class="w-full md:w-1/4">
+                    <label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Müşteri İade Ücreti</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500">₺</span>
+                        <input type="number" step="0.01" name="return_cost" value="{{ profitability_data.return_cost|stringformat:'s' }}" required
+                            class="w-full pl-7 rounded-lg border-gray-200 focus:ring-primary focus:border-primary">
+                    </div>
+                </div>
+
+                <div class="w-full md:w-1/4">
+                    <label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Teslim Olmayan Ücreti</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500">₺</span>
+                        <input type="number" step="0.01" name="undelivered_cost" value="{{ profitability_data.undelivered_cost|stringformat:'s' }}" required
+                            class="w-full pl-7 rounded-lg border-gray-200 focus:ring-primary focus:border-primary">
+                    </div>
+                </div>
+
+                <div class="w-full md:w-auto">
+                    <button type="submit" class="w-full px-6 py-2.5 bg-primary text-white font-semibold rounded-lg hover:bg-primary-dark transition-colors shadow-sm shadow-primary/30">
+                        Hesapla
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <div id="profitability-results">
+        {% if profitability_data %}
+        <!-- Summary Stats Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+            {% include 'admin_panel/components/stats_card.html' with label="Net Ciro" value=profitability_data.amount_kept|floatformat:0|add:" ₺" color="green" icon="currency-lira" sub_label="Teslim Edilen (İade Olmayan)" %}
+            
+            {% include 'admin_panel/components/stats_card.html' with label="Toplam Kargo Gideri" value=profitability_data.cost_grand_total|floatformat:0|add:" ₺" color="red" icon="truck" sub_label="Tüm Operasyonel Maliyetler" %}
+            
+            {% include 'admin_panel/components/stats_card.html' with label="Net Kar (Operasyonel)" value=profitability_data.net_profit|floatformat:0|add:" ₺" color="blue" icon="chart-bar" sub_label="Ciro - Kargo Gideri" %}
+            
+            {% include 'admin_panel/components/stats_card.html' with label="Beklenen Max Kar" value=profitability_data.expected_max_profit|floatformat:0|add:" ₺" color="purple" icon="check-circle" sub_label="Mevcut + Yolda Olanlar" %}
+        </div>
+        
+        <!-- Profitability Table -->
+        <div class="glass-card rounded-2xl overflow-hidden mb-6">
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm text-left text-gray-500">
+                    <thead class="text-xs text-gray-700 uppercase bg-gray-50 border-b">
+                        <tr>
+                            <th scope="col" class="px-6 py-4 font-bold"></th>
+                            <th scope="col" class="px-6 py-4 font-bold text-center">
+                                Çıkış Yapılan Kargo<br>
+                                <span class="text-[10px] font-normal text-gray-400 normal-case">(Tüm Siparişler)</span>
+                            </th>
+                            <th scope="col" class="px-6 py-4 font-bold text-center">
+                                Yolda<br>
+                                <span class="text-[10px] font-normal text-gray-400 normal-case">(Teslimat Sürecinde)</span>
+                            </th>
+                            <th scope="col" class="px-6 py-4 font-bold text-center">
+                                Teslim<br>
+                                <span class="text-[10px] font-normal text-gray-400 normal-case">(Teslim Edilen)</span>
+                            </th>
+                            <th scope="col" class="px-6 py-4 font-bold text-center">
+                                Teslim Olmayan<br>
+                                <span class="text-[10px] font-normal text-gray-400 normal-case">(İptal/Sorunlu)</span>
+                            </th>
+                            <th scope="col" class="px-6 py-4 font-bold text-center">
+                                Müşteriden İade<br>
+                                <span class="text-[10px] font-normal text-gray-400 normal-case">(İade Edilen)</span>
+                            </th>
+                            <th scope="col" class="px-6 py-4 font-bold text-center bg-gray-50 border-l border-gray-200">
+                                Teslim Edilen İade Olmayan<br>
+                                <span class="text-[10px] font-normal text-gray-400 normal-case">(Net Kalan)</span>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Adet Row -->
+                        <tr class="bg-white border-b hover:bg-gray-50">
+                            <th scope="row" class="px-6 py-4 font-bold text-gray-900 whitespace-nowrap">Adet</th>
+                            <td class="px-6 py-4 text-center font-medium">{{ profitability_data.count_total }}</td>
+                            <td class="px-6 py-4 text-center font-medium">{{ profitability_data.count_shipped }}</td>
+                            <td class="px-6 py-4 text-center font-medium">{{ profitability_data.count_delivered_initial }}</td>
+                            <td class="px-6 py-4 text-center font-medium">{{ profitability_data.count_undelivered }}</td>
+                            <td class="px-6 py-4 text-center font-medium">{{ profitability_data.count_return }}</td>
+                            <td class="px-6 py-4 text-center font-medium bg-gray-50 border-l border-gray-200">{{ profitability_data.count_kept }}</td>
+                        </tr>
+                        <!-- Tutar Row -->
+                        <tr class="bg-white border-b hover:bg-gray-50">
+                            <th scope="row" class="px-6 py-4 font-bold text-gray-900 whitespace-nowrap">Tutar</th>
+                            <td class="px-6 py-4 text-center">₺{{ profitability_data.amount_total|floatformat:0 }}</td>
+                            <td class="px-6 py-4 text-center">₺{{ profitability_data.amount_shipped|floatformat:0 }}</td>
+                            <td class="px-6 py-4 text-center">₺{{ profitability_data.amount_delivered_initial|floatformat:0 }}</td>
+                            <td class="px-6 py-4 text-center">₺{{ profitability_data.amount_undelivered|floatformat:0 }}</td>
+                            <td class="px-6 py-4 text-center">₺{{ profitability_data.amount_return|floatformat:0 }}</td>
+                            <td class="px-6 py-4 text-center bg-gray-50 border-l border-gray-200">₺{{ profitability_data.amount_kept|floatformat:0 }}</td>
+                        </tr>
+                        <!-- Maliyet Row -->
+                        <tr class="bg-white border-b hover:bg-gray-50">
+                            <th scope="row" class="px-6 py-4 font-bold text-gray-900 whitespace-nowrap">Maliyet</th>
+                            <td class="px-6 py-4 text-center text-red-600 font-medium">₺{{ profitability_data.cost_total|floatformat:0 }}</td>
+                            <td class="px-6 py-4 text-center text-red-600 font-medium">₺{{ profitability_data.cost_shipped|floatformat:0 }}</td>
+                            <td class="px-6 py-4 text-center text-red-600 font-medium">₺{{ profitability_data.cost_delivered_initial|floatformat:0 }}</td>
+                            <td class="px-6 py-4 text-center text-red-600 font-medium">₺{{ profitability_data.cost_undelivered|floatformat:0 }}</td>
+                            <td class="px-6 py-4 text-center text-red-600 font-medium">₺{{ profitability_data.cost_return|floatformat:0 }}</td>
+                            <td class="px-6 py-4 text-center text-red-600 font-medium bg-gray-50 border-l border-gray-200">₺{{ profitability_data.cost_kept|floatformat:0 }}</td>
+                        </tr>
+                        <!-- Oran Row -->
+                        <tr class="bg-white hover:bg-gray-50">
+                            <th scope="row" class="px-6 py-4 font-bold text-gray-900 whitespace-nowrap">Oran</th>
+                            <td class="px-6 py-4 text-center font-bold text-blue-600">100%</td>
+                            <td class="px-6 py-4 text-center font-bold text-blue-600">%{{ profitability_data.rate_shipped|floatformat:1 }}</td>
+                            <td class="px-6 py-4 text-center font-bold text-blue-600">%{{ profitability_data.rate_delivered_initial|floatformat:1 }}</td>
+                            <td class="px-6 py-4 text-center font-bold text-blue-600">%{{ profitability_data.rate_undelivered|floatformat:1 }}</td>
+                            <td class="px-6 py-4 text-center font-bold text-blue-600">%{{ profitability_data.rate_return|floatformat:1 }}</td>
+                            <td class="px-6 py-4 text-center font-bold text-blue-600 bg-gray-50 border-l border-gray-200">%{{ profitability_data.rate_kept|floatformat:1 }}</td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
-            <h3 class="text-lg font-medium text-gray-900">Karlılık Raporları Hazırlanıyor</h3>
-            <p class="text-gray-500 mt-1">Bu özellik yakında eklenecek.</p>
+        </div>
+        {% endif %}
+        </div>
         </div>
     </div>
 </div>
+
+<script>
+    function updateProfitability(e) {
+        const form = e.target;
+        const submitBtn = form.querySelector('button[type="submit"]');
+        const originalText = submitBtn.innerText;
+        
+        // Loading state
+        submitBtn.disabled = true;
+        submitBtn.innerText = 'Hesaplanıyor...';
+        submitBtn.classList.add('opacity-75', 'cursor-not-allowed');
+
+        const formData = new FormData(form);
+        const params = new URLSearchParams(formData);
+        const url = `${window.location.pathname}?${params.toString()}`;
+
+        fetch(url)
+            .then(response => response.text())
+            .then(html => {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                const newContent = doc.getElementById('profitability-results').innerHTML;
+                document.getElementById('profitability-results').innerHTML = newContent;
+                
+                // Update URL without reload
+                window.history.pushState({}, '', url);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Bir hata oluştu. Lütfen tekrar deneyin.');
+            })
+            .finally(() => {
+                // Reset button
+                submitBtn.disabled = false;
+                submitBtn.innerText = originalText;
+                submitBtn.classList.remove('opacity-75', 'cursor-not-allowed');
+            });
+    }
+</script>
 
 {% endblock %}
 

@@ -99,13 +99,29 @@
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
     
     <!-- Kampanya Satış Performansı -->
-    <div class="glass-card rounded-2xl">
-        <div class="px-6 py-4 border-b border-gray-200">
-            <h2 class="text-lg font-bold text-gray-900">Kampanya Performansı</h2>
-            <p class="text-sm text-gray-500">Günlük en iyi kampanyalar</p>
+    <!-- Kampanya Satış Performansı -->
+    <div class="glass-card rounded-2xl" x-data="{ sortBy: 'count' }">
+        <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+            <div>
+                <h2 class="text-lg font-bold text-gray-900">Kampanya Performansı</h2>
+                <p class="text-sm text-gray-500">Günlük en iyi kampanyalar</p>
+            </div>
+            <div class="flex bg-gray-100 p-1 rounded-lg">
+                <button @click="sortBy = 'count'" 
+                        :class="sortBy === 'count' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-900'"
+                        class="px-3 py-1.5 text-xs font-semibold rounded-md transition-all">
+                    Sipariş
+                </button>
+                <button @click="sortBy = 'revenue'" 
+                        :class="sortBy === 'revenue' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-900'"
+                        class="px-3 py-1.5 text-xs font-semibold rounded-md transition-all">
+                    Ciro
+                </button>
+            </div>
         </div>
         <div class="p-6">
-            <div class="space-y-3">
+            <!-- Sort by Count -->
+            <div x-show="sortBy === 'count'" class="space-y-3">
                 {% for campaign in campaign_performance %}
                 <div class="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:border-primary transition-colors">
                     <div class="flex items-center gap-3">
@@ -120,6 +136,29 @@
                     <div class="text-right">
                         <p class="text-lg font-bold text-gray-900">{{ campaign.sales_count }}</p>
                         <p class="text-xs text-gray-500">Satış</p>
+                    </div>
+                </div>
+                {% empty %}
+                <p class="text-center text-gray-400 py-8">Henüz satış yok</p>
+                {% endfor %}
+            </div>
+
+            <!-- Sort by Revenue -->
+            <div x-show="sortBy === 'revenue'" class="space-y-3" style="display: none;">
+                {% for campaign in campaign_performance_revenue %}
+                <div class="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:border-primary transition-colors">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center">
+                            <span class="text-white font-bold text-sm">{{ forloop.counter }}</span>
+                        </div>
+                        <div>
+                            <p class="font-semibold text-gray-900 text-sm">{{ campaign.title }}</p>
+                            <p class="text-xs text-gray-500">{{ campaign.sales_count }} Satış</p>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-lg font-bold text-gray-900">₺{{ campaign.total_revenue|floatformat:0 }}</p>
+                        <p class="text-xs text-gray-500">Ciro</p>
                     </div>
                 </div>
                 {% empty %}
@@ -163,13 +202,28 @@
     </div>
 
     <!-- Şehir Performansı -->
-    <div class="glass-card rounded-2xl">
-        <div class="px-6 py-4 border-b border-gray-200">
-            <h2 class="text-lg font-bold text-gray-900">Şehir Performansı</h2>
-            <p class="text-sm text-gray-500">Son 7 gün</p>
+    <div class="glass-card rounded-2xl" x-data="{ sortBy: 'count' }">
+        <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+            <div>
+                <h2 class="text-lg font-bold text-gray-900">Şehir Performansı</h2>
+                <p class="text-sm text-gray-500">Son 7 gün</p>
+            </div>
+            <div class="flex bg-gray-100 p-1 rounded-lg">
+                <button @click="sortBy = 'count'" 
+                        :class="sortBy === 'count' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-900'"
+                        class="px-3 py-1.5 text-xs font-semibold rounded-md transition-all">
+                    Sipariş
+                </button>
+                <button @click="sortBy = 'revenue'" 
+                        :class="sortBy === 'revenue' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-900'"
+                        class="px-3 py-1.5 text-xs font-semibold rounded-md transition-all">
+                    Ciro
+                </button>
+            </div>
         </div>
         <div class="p-6">
-            <div class="space-y-3">
+            <!-- Sort by Count -->
+            <div x-show="sortBy === 'count'" class="space-y-3">
                 {% for city_data in city_performance %}
                 <div class="flex items-center gap-3">
                     <div class="flex-1">
@@ -180,6 +234,26 @@
                         <div class="w-full bg-gray-200 rounded-full h-2">
                             {% widthratio city_data.order_count city_performance.0.order_count 100 as percent %}
                             <div class="bg-gradient-to-r from-brand-pink to-brand-purple h-2 rounded-full" style="width: {{ percent }}%"></div>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <p class="text-center text-gray-400 py-8">Henüz veri yok</p>
+                {% endfor %}
+            </div>
+
+            <!-- Sort by Revenue -->
+            <div x-show="sortBy === 'revenue'" class="space-y-3" style="display: none;">
+                {% for city_data in city_performance_revenue %}
+                <div class="flex items-center gap-3">
+                    <div class="flex-1">
+                        <div class="flex items-center justify-between mb-1">
+                            <span class="text-sm font-medium text-gray-900">{{ city_data.city_fk__name }}</span>
+                            <span class="text-sm font-bold text-gray-900">₺{{ city_data.total_revenue|floatformat:0 }}</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2">
+                            {% widthratio city_data.total_revenue city_performance_revenue.0.total_revenue 100 as percent %}
+                            <div class="bg-gradient-to-r from-blue-500 to-indigo-600 h-2 rounded-full" style="width: {{ percent }}%"></div>
                         </div>
                     </div>
                 </div>
