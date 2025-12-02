@@ -156,16 +156,16 @@
                 extend: {
                     colors: {
                         brand: {
-                            pink: '#E91E63',
-                            purple: '#9C27B0',
-                            coral: '#FF6B6B',
+                            pink: '{{ site_settings.theme_primary_color|default:"#E91E63" }}',
+                            purple: '{{ site_settings.theme_secondary_color|default:"#9C27B0" }}',
+                            coral: '{{ site_settings.theme_accent_color|default:"#FF6B6B" }}',
                             dark: '#333333',
                             light: '#f8f8f8'
                         },
                         gradient: {
-                            start: '#E91E63',
-                            middle: '#9C27B0',
-                            end: '#FF6B6B'
+                            start: '{{ site_settings.theme_primary_color|default:"#E91E63" }}',
+                            middle: '{{ site_settings.theme_secondary_color|default:"#9C27B0" }}',
+                            end: '{{ site_settings.theme_accent_color|default:"#FF6B6B" }}'
                         }
                     },
                     animation: {

@@ -63,6 +63,11 @@ def settings_view(request):
         settings.info_note_title = request.POST.get('info_note_title', settings.info_note_title)
         settings.info_note_content = request.POST.get('info_note_content', settings.info_note_content)
         
+        # Theme Colors
+        settings.theme_primary_color = request.POST.get('theme_primary_color', settings.theme_primary_color)
+        settings.theme_secondary_color = request.POST.get('theme_secondary_color', settings.theme_secondary_color)
+        settings.theme_accent_color = request.POST.get('theme_accent_color', settings.theme_accent_color)
+        
         # Security
         try:
             count = int(request.POST.get('rate_limit_count', settings.rate_limit_count))

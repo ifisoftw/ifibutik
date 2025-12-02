@@ -95,6 +95,11 @@ class SiteSettings(models.Model):
     info_note_title = models.CharField(max_length=255, default="Kapıda Ödeme Sistemi & İade Hakkı", verbose_name="Bilgi Notu Başlığı")
     info_note_content = models.TextField(default="Siparişlerinizi 14 gün içinde iade etme hakkınız bulunmaktadır.", verbose_name="Bilgi Notu İçeriği")
 
+    # Theme Settings
+    theme_primary_color = models.CharField(max_length=20, default="#E91E63", verbose_name="Ana Renk (Primary)")
+    theme_secondary_color = models.CharField(max_length=20, default="#9C27B0", verbose_name="İkincil Renk (Secondary)")
+    theme_accent_color = models.CharField(max_length=20, default="#FF6B6B", verbose_name="Vurgu Rengi (Accent)")
+
     # Security
     rate_limit_count = models.PositiveIntegerField(default=5, verbose_name="Rate Limit (Adet)")
     rate_limit_period = models.PositiveIntegerField(default=600, verbose_name="Rate Limit Süresi (Saniye)")
