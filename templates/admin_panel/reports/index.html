@@ -86,7 +86,6 @@
                             end.setDate(today.getDate() - 1);
                         } else {
                             start.setDate(today.getDate() - preset.days + (preset.days === 0 ? 0 : 1));
-                            if (preset.days > 1) start.setDate(today.getDate() - preset.days + 1);
                         }
         
                         if (preset.type !== 'all') {
@@ -171,6 +170,64 @@
                     Excel İndir
                 </a>
             </form>
+        </div>
+        
+        
+        <!-- Revenue Chart & Product Performance -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+            <!-- Revenue Chart -->
+            <div class="lg:col-span-2 glass-card rounded-2xl p-6 h-[450px]">
+                <div class="flex items-center justify-between mb-4">
+                    <div>
+                        <h2 class="text-lg font-bold text-gray-900">Ciro Grafiği</h2>
+                        <p class="text-sm text-gray-500" id="chart-subtitle">Seçilen tarih aralığına göre günlük ciro</p>
+                    </div>
+                    <div class="flex bg-gray-100 p-1 rounded-lg">
+                        <button onclick="updateChart('daily')" id="btn-daily" 
+                                class="px-3 py-1.5 text-xs font-semibold rounded-md transition-all shadow-sm bg-white text-gray-900">
+                            Günlük
+                        </button>
+                        <button onclick="updateChart('cumulative')" id="btn-cumulative" 
+                                class="px-3 py-1.5 text-xs font-semibold rounded-md transition-all text-gray-500 hover:text-gray-900">
+                            Kümülatif
+                        </button>
+                    </div>
+                </div>
+                <div id="revenue-chart"></div>
+            </div>
+
+            <!-- Product Performance -->
+            <div class="glass-card rounded-2xl flex flex-col h-[450px]">
+                <div class="px-6 py-4 border-b border-gray-200 flex-none">
+                    <h2 class="text-lg font-bold text-gray-900">Ürün Performansı</h2>
+                    <p class="text-sm text-gray-500">En çok satan ürünler</p>
+                </div>
+                <div class="p-6 overflow-y-auto flex-1 custom-scrollbar">
+                    <div class="space-y-3">
+                        {% for product in top_products %}
+                        <div class="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
+                            <div class="flex items-center gap-3">
+                                {% if product.images.first %}
+                                <img src="{{ product.images.first.image.url }}" class="w-10 h-10 object-cover rounded-lg">
+                                {% else %}
+                                <div class="w-10 h-10 bg-gray-100 rounded-lg"></div>
+                                {% endif %}
+                                <div>
+                                    <p class="font-semibold text-gray-900 text-sm line-clamp-1">{{ product.name }}</p>
+                                    <p class="text-xs text-gray-500">{{ product.sku }}</p>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-lg font-bold text-gray-900">{{ product.sales_count }}</p>
+                                <p class="text-xs text-gray-500">Adet</p>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <p class="text-center text-gray-400 py-8">Veri bulunamadı</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
         </div>
         
         <div class="grid grid-cols-2 gap-6">
@@ -486,5 +543,114 @@
     }
 </script>
 
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    // Chart Configuration
+    const chartData = {{ chart_data|safe }};
+    
+    // Base options
+    const baseOptions = {
+        chart: {
+            type: 'area',
+            height: 350,
+            toolbar: { show: false },
+            zoom: { enabled: false },
+            fontFamily: 'Inter, sans-serif',
+            animations: {
+                enabled: true,
+                easing: 'easeinout',
+                speed: 800
+            }
+        },
+        xaxis: {
+            categories: chartData.labels,
+            labels: {
+                style: { fontSize: '10px', colors: '#6B7280' }
+            },
+            axisBorder: { show: true, color: '#E5E7EB' },
+            axisTicks: { show: false }
+        },
+        yaxis: {
+            labels: {
+                formatter: function(value) {
+                    return value >= 1000 ? '₺' + (value / 1000).toFixed(1) + 'k' : '₺' + value.toFixed(0);
+                },
+                style: { fontSize: '11px', colors: '#6B7280' }
+            }
+        },
+        stroke: {
+            curve: 'smooth',
+            width: 2
+        },
+        fill: {
+            type: 'gradient',
+            gradient: {
+                shadeIntensity: 1,
+                opacityFrom: 0.7,
+                opacityTo: 0.2,
+                stops: [0, 90, 100]
+            }
+        },
+        dataLabels: { enabled: false },
+        tooltip: {
+            y: {
+                formatter: function(value) {
+                    return '₺' + value.toFixed(2);
+                }
+            }
+        }
+    };
+
+    // Initialize Chart
+    const chart = new ApexCharts(document.querySelector("#revenue-chart"), {
+        ...baseOptions,
+        series: [{
+            name: 'Ciro',
+            data: chartData.revenue
+        }],
+        colors: ['#8B5CF6']
+    });
+    chart.render();
+
+    // Toggle Function
+    function updateChart(type) {
+        const btnDaily = document.getElementById('btn-daily');
+        const btnCumulative = document.getElementById('btn-cumulative');
+        const subtitle = document.getElementById('chart-subtitle');
+
+        // Reset buttons
+        const activeClass = "bg-white text-gray-900 shadow-sm";
+        const inactiveClass = "text-gray-500 hover:text-gray-900";
+        
+        btnDaily.className = "px-3 py-1.5 text-xs font-semibold rounded-md transition-all " + inactiveClass;
+        btnCumulative.className = "px-3 py-1.5 text-xs font-semibold rounded-md transition-all " + inactiveClass;
+
+        if (type === 'daily') {
+            btnDaily.className = "px-3 py-1.5 text-xs font-semibold rounded-md transition-all " + activeClass;
+            subtitle.textContent = "Seçilen tarih aralığına göre günlük ciro";
+            
+            chart.updateOptions({
+                series: [{
+                    name: 'Ciro',
+                    data: chartData.revenue
+                }],
+                colors: ['#8B5CF6']
+            });
+        } else {
+            btnCumulative.className = "px-3 py-1.5 text-xs font-semibold rounded-md transition-all " + activeClass;
+            subtitle.textContent = "Seçilen tarih aralığına göre kümülatif ciro";
+            
+            chart.updateOptions({
+                series: [{
+                    name: 'Kümülatif Ciro',
+                    data: chartData.revenue_cumulative
+                }],
+                colors: ['#10B981']
+            });
+        }
+    }
+</script>
 {% endblock %}
 

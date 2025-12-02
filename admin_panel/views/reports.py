@@ -6,6 +6,7 @@ from datetime import timedelta
 from orders.models import Order
 from admin_panel.decorators import admin_required
 import csv
+import json
 
 
 @admin_required('view_reports')
@@ -45,6 +46,44 @@ def reports(request):
     
     city_report = city_qs.order_by('-order_count')
     city_report_revenue = city_qs.order_by('-total_revenue')
+    
+    # ====== En Çok Satan Ürünler ======
+    from products.models import Product
+    from django.db.models import Q
+    
+    top_products = Product.objects.annotate(
+        sales_count=Count('orderitem', filter=Q(
+            orderitem__order__created_at__date__gte=start_date,
+            orderitem__order__created_at__date__lte=end_date
+        ))
+    ).filter(sales_count__gt=0).order_by('-sales_count')
+    
+    # ====== Grafik Verileri (Günlük Ciro) ======
+    chart_dates = []
+    chart_revenues = []
+    chart_revenues_cumulative = []
+    
+    current_date = start_date
+    cumulative_total = 0
+    
+    while current_date <= end_date:
+        daily_revenue = Order.objects.filter(
+            created_at__date=current_date
+        ).aggregate(total=Sum('total_amount'))['total'] or 0
+        
+        cumulative_total += float(daily_revenue)
+        
+        chart_dates.append(current_date.strftime('%d.%m'))
+        chart_revenues.append(float(daily_revenue))
+        chart_revenues_cumulative.append(cumulative_total)
+        
+        current_date += timedelta(days=1)
+        
+    chart_data = {
+        'labels': chart_dates,
+        'revenue': chart_revenues,
+        'revenue_cumulative': chart_revenues_cumulative
+    }
     
     # Karlılık Raporu Hesaplamaları
     # Default Değerler
@@ -194,6 +233,8 @@ def reports(request):
         'city_report': city_report,
         'city_report_revenue': city_report_revenue,
         'profitability_data': profitability_data,
+        'chart_data': json.dumps(chart_data),
+        'top_products': top_products,
     })
 
 

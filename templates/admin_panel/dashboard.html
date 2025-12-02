@@ -397,8 +397,7 @@
                 style: { fontSize: '10px', colors: '#6B7280' },
                 formatter: function(value) {
                     if (value && value.includes(':')) {
-                        const hour = parseInt(value.split(':')[0]);
-                        return (hour % 3 === 0) ? value : '';
+                        return value;
                     }
                     return value;
                 }
