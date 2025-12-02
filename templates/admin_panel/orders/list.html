@@ -169,11 +169,12 @@
                 <a href="?status={{ code }}{% for key, value in request.GET.items %}{% if key != 'status' %}&{{ key }}={{ value }}{% endif %}{% endfor %}"
                    class="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all
                    {% if status == code %}
-                       {% if code == 'new' %}bg-blue-500 text-white shadow-sm
-                       {% elif code == 'preparing' %}bg-orange-400 text-white shadow-sm
-                       {% elif code == 'in_cargo' %}bg-purple-500 text-white shadow-sm
+                       {% if code == 'new' %}bg-yellow-500 text-white shadow-sm
+                       {% elif code == 'processing' %}bg-blue-500 text-white shadow-sm
+                       {% elif code == 'shipped' %}bg-purple-500 text-white shadow-sm
                        {% elif code == 'delivered' %}bg-green-500 text-white shadow-sm
                        {% elif code == 'cancelled' %}bg-red-500 text-white shadow-sm
+                       {% elif code == 'return' %}bg-gray-900 text-white shadow-sm
                        {% else %}bg-gray-700 text-white shadow-sm{% endif %}
                    {% else %}
                        bg-white text-gray-600 border border-gray-200 hover:border-gray-300 hover:shadow-sm
@@ -283,7 +284,6 @@
                             end.setDate(today.getDate() - 1);
                         } else {
                             start.setDate(today.getDate() - preset.days + (preset.days === 0 ? 0 : 1));
-                            if (preset.days > 1) start.setDate(today.getDate() - preset.days + 1);
                         }
 
                         if (preset.type !== 'all') {
