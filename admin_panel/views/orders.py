@@ -37,7 +37,62 @@ def order_list(request):
         'month_revenue': Order.objects.filter(
             created_at__date__gte=month_start
         ).aggregate(Sum('total_amount'))['total_amount__sum'] or 0,
+        'total_revenue': Order.objects.aggregate(Sum('total_amount'))['total_amount__sum'] or 0,
+        'total_product_sales': OrderItem.objects.count(), # Basitçe satır sayısını alıyoruz, adet toplamı istenirse Sum('quantity') kullanılabilir
+        'daily_product_sales': OrderItem.objects.filter(order__created_at__date=today).count(),
     }
+    
+    # Yesterday's stats for comparison
+    yesterday = today - timedelta(days=1)
+    
+    yesterday_orders = Order.objects.filter(created_at__date=yesterday).count()
+    yesterday_revenue = Order.objects.filter(created_at__date=yesterday).aggregate(Sum('total_amount'))['total_amount__sum'] or 0
+    yesterday_product_sales = OrderItem.objects.filter(order__created_at__date=yesterday).count()
+    
+    # Calculate changes
+    def calculate_change(current, previous):
+        if previous == 0:
+            return 100 if current > 0 else 0
+        return ((current - previous) / previous) * 100
+
+    stats['orders_change'] = calculate_change(stats['today'], yesterday_orders)
+    stats['revenue_change'] = calculate_change(stats['today_revenue'], yesterday_revenue)
+    stats['product_sales_change'] = calculate_change(stats['daily_product_sales'], yesterday_product_sales)
+
+    # Previous Month Stats
+    first_day_of_current_month = today.replace(day=1)
+    last_day_of_prev_month = first_day_of_current_month - timedelta(days=1)
+    first_day_of_prev_month = last_day_of_prev_month.replace(day=1)
+    
+    prev_month_revenue = Order.objects.filter(
+        created_at__date__gte=first_day_of_prev_month,
+        created_at__date__lte=last_day_of_prev_month
+    ).aggregate(Sum('total_amount'))['total_amount__sum'] or 0
+    
+    stats['month_revenue_change'] = calculate_change(stats['month_revenue'], prev_month_revenue)
+    
+    # Turkish Month Names
+    tr_months = {
+        1: 'Ocak', 2: 'Şubat', 3: 'Mart', 4: 'Nisan', 5: 'Mayıs', 6: 'Haziran',
+        7: 'Temmuz', 8: 'Ağustos', 9: 'Eylül', 10: 'Ekim', 11: 'Kasım', 12: 'Aralık'
+    }
+    stats['month_revenue_change'] = calculate_change(stats['month_revenue'], prev_month_revenue)
+    
+    # Turkish Month Names
+    tr_months = {
+        1: 'Ocak', 2: 'Şubat', 3: 'Mart', 4: 'Nisan', 5: 'Mayıs', 6: 'Haziran',
+        7: 'Temmuz', 8: 'Ağustos', 9: 'Eylül', 10: 'Ekim', 11: 'Kasım', 12: 'Aralık'
+    }
+    stats['prev_month_name'] = tr_months[last_day_of_prev_month.month]
+
+    # Color logic for changes
+    def get_change_color(value):
+        return 'text-emerald-600' if value >= 0 else 'text-rose-600'
+
+    stats['orders_change_color'] = get_change_color(stats['orders_change'])
+    stats['revenue_change_color'] = get_change_color(stats['revenue_change'])
+    stats['product_sales_change_color'] = get_change_color(stats['product_sales_change'])
+    stats['month_revenue_change_color'] = get_change_color(stats['month_revenue_change'])
 
     # Filters
     status = request.GET.get('status', '')
